@@ -555,15 +555,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@spoonjoy/redwoodjs-dbauth-oauth-api@workspace:packages/api":
+"@spoonjoy/redwoodjs-dbauth-oauth-api@workspace:api":
   version: 0.0.0-use.local
-  resolution: "@spoonjoy/redwoodjs-dbauth-oauth-api@workspace:packages/api"
+  resolution: "@spoonjoy/redwoodjs-dbauth-oauth-api@workspace:api"
   languageName: unknown
   linkType: soft
 
-"@spoonjoy/redwoodjs-dbauth-oauth-web@workspace:packages/web":
+"@spoonjoy/redwoodjs-dbauth-oauth-web@workspace:web":
   version: 0.0.0-use.local
-  resolution: "@spoonjoy/redwoodjs-dbauth-oauth-web@workspace:packages/web"
+  resolution: "@spoonjoy/redwoodjs-dbauth-oauth-web@workspace:web"
   languageName: unknown
   linkType: soft
 

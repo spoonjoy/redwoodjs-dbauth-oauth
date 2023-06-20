@@ -2,7 +2,8 @@
   "name": "@spoonjoy/redwoodjs-dbauth-oauth",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "web",
+    "api"
   ],
   "engines": {
     "node": "=18.x",
