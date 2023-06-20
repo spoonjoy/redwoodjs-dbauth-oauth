@@ -1,0 +1,21 @@
+{
+  "name": "@spoonjoy/redwoodjs-dbauth-oauth-web",
+  "version": "0.0.0",
+  "description": "> TODO: description",
+  "author": "Ari Mendelow <ari@mendelow.me>",
+  "homepage": "",
+  "license": "ISC",
+  "main": "index.ts",
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "tsc": "tsc"
+  }
+}
