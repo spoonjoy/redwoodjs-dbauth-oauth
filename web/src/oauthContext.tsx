@@ -6,6 +6,13 @@ function createOAuthContext() {
   return React.createContext<OAuthInstanceType | undefined>(undefined)
 }
 
+export function createOAuthClient(): OAuthInstanceType {
+  const oAuthClient = new OAuthClient()
+  return {
+    getOAuthUrls: oAuthClient.getOAuthUrls,
+  }
+}
+
 function createUseOAuth(
   OAuthContext: React.Context<OAuthInstanceType | undefined>
 ) {
@@ -27,17 +34,12 @@ interface OAuthProviderProps {
 }
 
 function createOAuthProvider(
-  OAuthContext: React.Context<OAuthInstanceType | undefined>
+  OAuthContext: React.Context<OAuthInstanceType | undefined>,
+  oAuthClient: OAuthInstanceType
 ) {
   const OAuthProvider = ({ children }: OAuthProviderProps) => {
-    const oAuthclient = new OAuthClient()
-
     return (
-      <OAuthContext.Provider
-        value={{
-          getOAuthUrls: oAuthclient.getOAuthUrls,
-        }}
-      >
+      <OAuthContext.Provider value={oAuthClient}>
         {children}
       </OAuthContext.Provider>
     )
@@ -46,10 +48,10 @@ function createOAuthProvider(
   return OAuthProvider
 }
 
-export function createOAuth() {
+export function createOAuth(oAuthClient: OAuthInstanceType) {
   const OAuthContext = createOAuthContext()
   const useOAuth = createUseOAuth(OAuthContext)
-  const OAuthProvider = createOAuthProvider(OAuthContext)
+  const OAuthProvider = createOAuthProvider(OAuthContext, oAuthClient)
 
   return { OAuthContext, OAuthProvider, useOAuth }
 }

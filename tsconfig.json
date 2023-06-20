@@ -4,7 +4,7 @@
     "moduleResolution": "node",
     "declarationMap": true,
     "emitDeclarationOnly": false,
-    "sourceMap": true,
+    "sourceMap": false,
     "composite": true,
     "strict": true,
     "esModuleInterop": true,

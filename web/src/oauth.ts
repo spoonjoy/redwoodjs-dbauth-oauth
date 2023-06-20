@@ -1,5 +1,7 @@
 export default class OAuthClient {
-  constructor() {}
+  constructor() {
+    this.getOAuthUrls = this.getOAuthUrls.bind(this)
+  }
   getOAuthUrls() {
     const authUrls = {
       apple: this.getAppleAuthUrl(),
@@ -10,6 +12,7 @@ export default class OAuthClient {
   }
 
   private getGoogleAuthUrl() {
+    console.log('in getGoogleAuthUrl')
     if (!process.env.FE_URL || !process.env.GOOGLE_CLIENT_ID) {
       return undefined
     }
@@ -37,6 +40,7 @@ export default class OAuthClient {
 
   // based on https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_js/incorporating_sign_in_with_apple_into_other_platforms#3332113
   private getAppleAuthUrl() {
+    console.log('in getAppleAuthUrl')
     if (!process.env.FE_URL || !process.env.APPLE_CLIENT_ID) {
       return undefined
     }
