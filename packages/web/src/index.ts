@@ -1,3 +1,3 @@
-export const api = () => {
+export const web = () => {
   console.log('hello from web')
 }
