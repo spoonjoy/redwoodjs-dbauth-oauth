@@ -1,5 +1,6 @@
 node_modules/
-packages/*/dist/
+web/*/dist/
+api/*/dist/
 .yarn/*
 .yarn/**/*
 !.yarn/patches
