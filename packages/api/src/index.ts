@@ -1,1 +1,3 @@
-console.log("Hello from api")
+export const api = () => {
+  console.log('hello from api')
+}

@@ -1,1 +1,3 @@
-console.log("Hello from web");
+export const api = () => {
+  console.log('hello from web')
+}
