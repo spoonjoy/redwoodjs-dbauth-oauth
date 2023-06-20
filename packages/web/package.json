@@ -5,12 +5,13 @@
   "author": "Ari Mendelow <ari@mendelow.me>",
   "homepage": "",
   "license": "ISC",
-  "main": "index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "directories": {
-    "lib": "lib"
+    "dist": "dist"
   },
   "files": [
-    "lib"
+    "dist"
   ],
   "publishConfig": {
     "access": "public"

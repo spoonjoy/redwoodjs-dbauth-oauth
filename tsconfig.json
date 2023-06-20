@@ -1,21 +1,19 @@
 {
   "compilerOptions": {
+    /* Basic Options */
+    "target": "es5",
     "module": "commonjs",
-    "declaration": true,
-    "noImplicitAny": false,
-    "removeComments": true,
-    "noLib": false,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "target": "es6",
-    "sourceMap": true,
-    "lib": [
-      "es6"
-    ]
-  },
-  "exclude": [
-    "node_modules",
-    "**/*.spec.ts"
-  ]
- }
- 
+    "lib": ["ESNext"],
+
+    /* Strict Type-Checking Options */
+    "strict": true,
+
+    /* Module Resolution Options */
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+
+    /* Advanced Options */
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
+  }
+}
