@@ -17,6 +17,7 @@
     "access": "public"
   },
   "scripts": {
-    "tsc": "tsc"
+    "build": "tsc",
+    "yalc:publish": "yalc publish --push"
   }
 }

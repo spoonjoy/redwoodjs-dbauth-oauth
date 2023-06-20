@@ -15,5 +15,9 @@
     "lerna": "^7.0.2",
     "prettier": "2.8.8",
     "typescript": "^5.1.3"
+  },
+  "scripts": {
+    "build": "lerna run build",
+    "yalc:publish": "lerna run yalc:publish"
   }
 }
