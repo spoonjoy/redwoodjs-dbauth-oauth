@@ -23,6 +23,8 @@
   },
   "scripts": {
     "build": "lerna run build",
-    "yalc:publish": "lerna run yalc:publish"
+    "yalc:publish": "lerna run yalc:publish",
+    "webadd": "yarn workspace @spoonjoy/redwoodjs-dbauth-oauth-web add",
+    "apiadd": "yarn workspace @spoonjoy/redwoodjs-dbauth-oauth-api add"
   }
 }

@@ -1,6 +1,6 @@
 node_modules/
-web/dist
-api/dist
+web/dist/
+api/dist/
 .yarn/*
 .yarn/**/*
 !.yarn/patches
