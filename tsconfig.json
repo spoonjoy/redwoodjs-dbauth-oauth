@@ -1,19 +1,27 @@
 {
   "compilerOptions": {
-    /* Basic Options */
-    "target": "es5",
-    "module": "commonjs",
-    "lib": ["ESNext"],
-
-    /* Strict Type-Checking Options */
-    "strict": true,
-
-    /* Module Resolution Options */
+    "target": "esnext",
     "moduleResolution": "node",
+    "module": "esnext",
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "sourceMap": true,
+    "composite": true,
+    "strict": true,
     "esModuleInterop": true,
-
-    /* Advanced Options */
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
-  }
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "jsx": "preserve",
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "exclude": [
+    "dist",
+    "node_modules",
+    "**/__tests__",
+    "**/__mocks__",
+    "**/*.test.*"
+  ]
 }
