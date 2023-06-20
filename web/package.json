@@ -19,5 +19,8 @@
   "scripts": {
     "build": "tsc",
     "yalc:publish": "yalc publish --push"
+  },
+  "dependencies": {
+    "react": "18.2.0"
   }
 }
