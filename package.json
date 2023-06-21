@@ -19,10 +19,12 @@
     "eslint-plugin-react": "^7.32.2",
     "lerna": "^7.0.2",
     "prettier": "2.8.8",
+    "tsc-watch": "^6.0.4",
     "typescript": "^5.1.3"
   },
   "scripts": {
     "build": "lerna run build",
+    "watch": "lerna run watch",
     "yalc:publish": "lerna run yalc:publish",
     "webadd": "yarn workspace @spoonjoy/redwoodjs-dbauth-oauth-web add",
     "apiadd": "yarn workspace @spoonjoy/redwoodjs-dbauth-oauth-api add"

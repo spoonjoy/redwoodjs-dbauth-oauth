@@ -18,6 +18,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "watch": "tsc-watch --onSuccess \"yalc publish --push\"",
     "yalc:publish": "yalc publish --push"
   },
   "dependencies": {
