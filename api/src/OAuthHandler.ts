@@ -24,5 +24,18 @@ export class OAuthHandler<
     const request = normalizeRequest(this.event)
 
     console.log('OAuthHandler: request', request)
+
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        data: {
+          message: 'oauth handler goes here',
+          request,
+        },
+      }),
+    }
   }
 }
