@@ -178,8 +178,6 @@ export class OAuthHandler<
   }
 
   async _getGoogleUserInfo(): Promise<GoogleUserInfo> {
-    const code = this._getCodeParam()
-
     const { id_token, access_token } = await this._getGoogleTokens()
 
     const response = await fetch(
@@ -201,7 +199,9 @@ export class OAuthHandler<
     }
   }
 
-  _createLinkAccountResponse(oAuthRecord: any, redirectBackUrl: string | null) {
+  _createLinkAccountResponse(oAuthRecord: any) {
+    // If this exists, it should be a redirect back to the app
+    const redirectBackUrl = this._getStateParam()
     return [
       oAuthRecord,
       {
@@ -214,9 +214,6 @@ export class OAuthHandler<
   }
 
   async linkGoogleAccount() {
-    // If this exists, it should be a redirect back to the app
-    const redirectBackUrl = this._getStateParam()
-
     const googleUserInfo = await this._getGoogleUserInfo()
 
     let currentUser
@@ -244,7 +241,7 @@ export class OAuthHandler<
           },
         })
 
-        return this._createLinkAccountResponse(newOAuthRecord, redirectBackUrl)
+        return this._createLinkAccountResponse(newOAuthRecord)
       }
       // if there isn't, create a new user and link to that user.
       else {
@@ -269,7 +266,7 @@ export class OAuthHandler<
           },
         })
 
-        return this._createLinkAccountResponse(newOAuthRecord, redirectBackUrl)
+        return this._createLinkAccountResponse(newOAuthRecord)
       }
     }
 
@@ -288,7 +285,7 @@ export class OAuthHandler<
             userId: currentUser.id,
           },
         })
-        return this._createLinkAccountResponse(newOAuthRecord, redirectBackUrl)
+        return this._createLinkAccountResponse(newOAuthRecord)
       }
     }
   }
