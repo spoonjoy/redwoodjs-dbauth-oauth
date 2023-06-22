@@ -4,6 +4,7 @@
     "outDir": "dist",
     "rootDir": "src",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
+    "sourceRoot": "/Users/arimendelow/code/redwoodjs-dbauth-oauth/api/src/",
     "module": "commonjs"
   },
   "include": ["src"]

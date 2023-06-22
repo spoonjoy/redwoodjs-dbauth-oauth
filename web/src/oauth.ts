@@ -13,13 +13,13 @@ export default class OAuthClient {
 
   private getGoogleAuthUrl() {
     console.log('in getGoogleAuthUrl')
-    if (!process.env.FE_URL || !process.env.GOOGLE_CLIENT_ID) {
+    if (!process.env.RWJS_API_URL || !process.env.GOOGLE_CLIENT_ID) {
       return undefined
     }
 
     const rootUrl = 'https://accounts.google.com/o/oauth2/v2/auth'
     const options = {
-      redirect_uri: `${process.env.FE_URL}/auth?provider=google`,
+      redirect_uri: `${process.env.RWJS_API_URL}/auth/oauth?method=linkGoogleAccount&provider=google`,
       client_id: process.env.GOOGLE_CLIENT_ID,
       access_type: 'offline',
       response_type: 'code',
