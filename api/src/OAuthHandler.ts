@@ -126,6 +126,17 @@ export class OAuthHandler<
     return code
   }
 
+  _getStateParam() {
+    const state = this.params.state || this.event.queryStringParameters?.state
+
+    if (!state || String(state).trim() === '') {
+      console.log('No state provided')
+      return null
+    }
+
+    return state
+  }
+
   _getProviderParam() {
     const provider = this.params.provider
 
@@ -190,7 +201,22 @@ export class OAuthHandler<
     }
   }
 
+  _createLinkAccountResponse(oAuthRecord: any, redirectBackUrl: string | null) {
+    return [
+      oAuthRecord,
+      {
+        location: redirectBackUrl,
+      },
+      {
+        statusCode: 303,
+      },
+    ]
+  }
+
   async linkGoogleAccount() {
+    // If this exists, it should be a redirect back to the app
+    const redirectBackUrl = this._getStateParam()
+
     const googleUserInfo = await this._getGoogleUserInfo()
 
     let currentUser
@@ -218,7 +244,7 @@ export class OAuthHandler<
           },
         })
 
-        return [newOAuthRecord]
+        return this._createLinkAccountResponse(newOAuthRecord, redirectBackUrl)
       }
       // if there isn't, create a new user and link to that user.
       else {
@@ -243,7 +269,7 @@ export class OAuthHandler<
           },
         })
 
-        return [newOAuthRecord]
+        return this._createLinkAccountResponse(newOAuthRecord, redirectBackUrl)
       }
     }
 
@@ -262,7 +288,7 @@ export class OAuthHandler<
             userId: currentUser.id,
           },
         })
-        return [newOAuthRecord]
+        return this._createLinkAccountResponse(newOAuthRecord, redirectBackUrl)
       }
     }
   }
@@ -310,10 +336,12 @@ export class OAuthHandler<
         method
       ]()
 
-      return this.dbAuthHandlerInstance._buildResponseWithCorsHeaders(
+      const response = this.dbAuthHandlerInstance._buildResponseWithCorsHeaders(
         this.dbAuthHandlerInstance._ok(body, headers, options),
         corsHeaders
       )
+      console.log('response', response)
+      return response
     } catch (e: any) {
       return this.dbAuthHandlerInstance._buildResponseWithCorsHeaders(
         this.dbAuthHandlerInstance._badRequest(e.message || e),

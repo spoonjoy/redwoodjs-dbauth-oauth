@@ -3,8 +3,7 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
-    "sourceRoot": "/Users/arimendelow/code/redwoodjs-dbauth-oauth/web/src/"
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
   },
   "include": ["src", "types"]
 }
