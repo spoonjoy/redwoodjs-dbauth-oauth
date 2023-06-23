@@ -10,6 +10,7 @@ export function createOAuthClient(): OAuthInstanceType {
   const oAuthClient = new OAuthClient()
   return {
     getOAuthUrls: oAuthClient.getOAuthUrls,
+    unlinkAccount: oAuthClient.unlinkAccount,
   }
 }
 

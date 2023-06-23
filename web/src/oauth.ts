@@ -11,6 +11,20 @@ export default class OAuthClient {
     return authUrls
   }
 
+  async unlinkAccount(provider: 'apple' | 'google') {
+    const response = await fetch(
+      `/auth/oauth?method=unlinkAccount&provider=${provider}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+
+    return response.json()
+  }
+
   private getGoogleAuthUrl(currentUrl = '') {
     if (!process.env.RWJS_API_URL || !process.env.GOOGLE_CLIENT_ID) {
       return undefined
