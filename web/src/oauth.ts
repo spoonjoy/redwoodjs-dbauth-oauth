@@ -50,7 +50,7 @@ export default class OAuthClient {
       client_id: process.env.APPLE_CLIENT_ID,
       response_type: 'code',
       response_mode: 'form_post',
-      scope: 'name%20email',
+      scope: 'name email',
     }
 
     const queryString = new URLSearchParams(options).toString()
