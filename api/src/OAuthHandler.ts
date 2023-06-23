@@ -33,15 +33,63 @@ interface TokenResponse {
   token_type: string
 }
 
-interface GoogleUserInfo {
+/**
+ * {
+  iss: "https://appleid.apple.com",
+  aud: "app.spoonjoy.client",
+  exp: 1687588464,
+  iat: 1687502064,
+  sub: "001942.67cefd9e2e494fc9a4daa803dd999ac7.2122",
+  at_hash: "cbYgrWy7he1-ixPASGabog",
+  email: "ari@mendelow.me",
+  email_verified: "true",
+  auth_time: 1687502064,
+  nonce_supported: true,
+}
+
+{
+  iss: "https://accounts.google.com",
+  azp: "455236264279-qk9tju281evabb70ebfjkms9ru6m5v18.apps.googleusercontent.com",
+  aud: "455236264279-qk9tju281evabb70ebfjkms9ru6m5v18.apps.googleusercontent.com",
+  sub: "101333747228901268604",
+  email: "ari.mendehigh@gmail.com",
+  email_verified: true,
+  at_hash: "i2JjgVBN7BIk-sLG95matQ",
+  name: "Ari Mendelow",
+  picture: "https://lh3.googleusercontent.com/a/AAcHTtc6nqbgSpmrixBTrZpTbT_V5U_DsX09N8yxUV-7ow=s96-c",
+  given_name: "Ari",
+  family_name: "Mendelow",
+  locale: "en",
+  iat: 1687502139,
+  exp: 1687505739,
+}
+
+ */
+
+/**
+ * The decoded ID token will contain more than this, but this is the minimum
+ * of what's needed (and common across providers, ie apple doesn't provide any
+ * name information)
+ * */
+interface DecodedIdToken {
+  /** The issuer registered claim identifies the principal that issues the identity token. */
+  iss: string
+  /** The subject registered claim identifies the principal that’s the subject of the identity token. Because this token is for your app, the value is the unique identifier for the user. */
+  sub: string
+  /** The audience registered claim identifies the recipient of the identity token. Because the token is for your app, the value is the client_id from your developer account. */
+  aud: string
+  /** The issued at registered claim indicates the time that Apple issues the identity token, in the number of seconds since the Unix epoch in UTC. */
+  iat: number
+  /** The expiration time registered claim identifies the time that the identity token expires, in the number of seconds since the Unix epoch in UTC. The value must be greater than the current date and time when verifying the token. */
+  exp: number
+  /** The user's email address. For Apple, could be a proxy address, and can be empty for Work & School users. */
   email: string
-  family_name: string
-  given_name: string
-  id: string
-  locale: string
-  name: string
-  picture: string
-  verified_email: boolean
+  /** Whether the service verifies the email. */
+  email_verified: boolean
+  /** The user's full name in displayable form. Not returned by Apple. */
+  name?: string
+  /** The URL to the user's profile picture. Not returned by Apple. */
+  picture?: string
 }
 
 export type OAuthMethodNames =
@@ -152,9 +200,25 @@ export class OAuthHandler<
     return provider
   }
 
-  async _getTokensFromProvider(
+  /**
+   *  Verifies a decoded ID token
+   *  @returns the decoded token if it's valid, otherwise throws an error
+   * */
+  _verifyIdToken(token: DecodedIdToken): DecodedIdToken {
+    /**
+     * TODO: To verify the identity token, your app server must:
+     * - Verify the JWS E256 signature using the server’s public key
+     * - Verify the nonce for the authentication
+     * - Verify that the iss field contains https://appleid.apple.com
+     * - Verify that the aud field is the developer’s client_id
+     * - Verify that the time is earlier than the exp value of the token
+     */
+    return token
+  }
+
+  async _getTokenFromProvider(
     provider: 'apple' | 'google'
-  ): Promise<TokenResponse> {
+  ): Promise<DecodedIdToken> {
     const code = this._getCodeParam()
 
     let url
@@ -195,19 +259,20 @@ export class OAuthHandler<
       body: new URLSearchParams(values).toString(),
     }).then((res) => res.json())
 
-    if (response.access_token && response.id_token) {
-      const idTokenDecoded = jwt.decode(response.id_token)
-      console.log('idTokenDecoded', idTokenDecoded)
-      return response as TokenResponse
+    if (response.id_token) {
+      const idTokenDecoded = jwt.decode(response.id_token) as DecodedIdToken
+      return this._verifyIdToken(idTokenDecoded)
     } else {
       throw new Error(
-        `Unable to get ${provider} tokens, got: ${JSON.stringify(response)}`
+        `Unable to get ${provider} token from endpoint, got: ${JSON.stringify(
+          response
+        )}`
       )
     }
   }
 
   async _getGoogleUserInfo(): Promise<GoogleUserInfo> {
-    const { id_token, access_token } = await this._getTokensFromProvider(
+    const { id_token, access_token } = await this._getTokenFromProvider(
       'google'
     )
 
@@ -250,27 +315,7 @@ export class OAuthHandler<
   }
 
   async _getAppleUserInfo(): Promise<GoogleUserInfo> {
-    const { id_token, access_token } = await this._getTokensFromProvider(
-      'apple'
-    )
-
-    const response = await fetch(
-      `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${access_token}`,
-      {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${id_token}`,
-        },
-      }
-    ).then((res) => res.json())
-
-    if (response.id) {
-      return response as GoogleUserInfo
-    } else {
-      throw new Error(
-        `Unable to get Google user info, got: ${JSON.stringify(response)}`
-      )
-    }
+    const { id_token, access_token } = await this._getTokenFromProvider('apple')
   }
 
   _createLinkAccountResponse(oAuthRecord: any) {
