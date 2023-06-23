@@ -271,30 +271,6 @@ export class OAuthHandler<
     }
   }
 
-  async _getGoogleUserInfo(): Promise<GoogleUserInfo> {
-    const { id_token, access_token } = await this._getTokenFromProvider(
-      'google'
-    )
-
-    const response = await fetch(
-      `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${access_token}`,
-      {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${id_token}`,
-        },
-      }
-    ).then((res) => res.json())
-
-    if (response.id) {
-      return response as GoogleUserInfo
-    } else {
-      throw new Error(
-        `Unable to get Google user info, got: ${JSON.stringify(response)}`
-      )
-    }
-  }
-
   // based on https://developer.apple.com/documentation/sign_in_with_apple/generate_and_validate_tokens
   _getAppleAuthClientSecret() {
     const timeInSeconds = new Date().getTime() / 1000
@@ -314,10 +290,6 @@ export class OAuthHandler<
     return token
   }
 
-  async _getAppleUserInfo(): Promise<GoogleUserInfo> {
-    const { id_token, access_token } = await this._getTokenFromProvider('apple')
-  }
-
   _createLinkAccountResponse(oAuthRecord: any) {
     // If this exists, it should be a redirect back to the app
     const redirectBackUrl = this._getStateParam()
@@ -332,8 +304,8 @@ export class OAuthHandler<
     ]
   }
 
-  async linkGoogleAccount() {
-    const googleUserInfo = await this._getGoogleUserInfo()
+  async _linkProviderAccount(provider: 'apple' | 'google') {
+    const userToken = await this._getTokenFromProvider(provider)
 
     let currentUser
 
@@ -345,7 +317,7 @@ export class OAuthHandler<
 
     // check if there is already a user with this email.
     const maybeExistingUser = await this.dbUserAccessor.findUnique({
-      where: { email: googleUserInfo.email },
+      where: { email: userToken.email },
     })
 
     // if NOT logged in:
@@ -354,8 +326,8 @@ export class OAuthHandler<
       if (maybeExistingUser) {
         const newOAuthRecord = await this.dbOAuthAccessor.create({
           data: {
-            provider: 'GOOGLE',
-            providerUserId: googleUserInfo.id,
+            provider: provider.toUpperCase(),
+            providerUserId: userToken.sub,
             userId: maybeExistingUser.id,
           },
         })
@@ -370,8 +342,8 @@ export class OAuthHandler<
         const [hashedPassword, salt] = hashPassword(generatedPass)
         const newUser = await this.dbUserAccessor.create({
           data: {
-            email: googleUserInfo.email,
-            username: googleUserInfo.name,
+            email: userToken.email,
+            username: userToken.email,
             hashedPassword,
             salt,
           },
@@ -379,8 +351,8 @@ export class OAuthHandler<
 
         const newOAuthRecord = await this.dbOAuthAccessor.create({
           data: {
-            provider: 'GOOGLE',
-            providerUserId: googleUserInfo.id,
+            provider: provider.toUpperCase(),
+            providerUserId: userToken.sub,
             userId: newUser.id,
           },
         })
@@ -399,8 +371,8 @@ export class OAuthHandler<
       else {
         const newOAuthRecord = await this.dbOAuthAccessor.create({
           data: {
-            provider: 'GOOGLE',
-            providerUserId: googleUserInfo.id,
+            provider: provider.toUpperCase(),
+            providerUserId: userToken.sub,
             userId: currentUser.id,
           },
         })
@@ -409,8 +381,12 @@ export class OAuthHandler<
     }
   }
 
+  async linkGoogleAccount() {
+    return this._linkProviderAccount('google')
+  }
+
   async linkAppleAccount() {
-    const appleUserInfo = await this._getAppleUserInfo()
+    return this._linkProviderAccount('apple')
   }
 
   async unlinkAccount() {
