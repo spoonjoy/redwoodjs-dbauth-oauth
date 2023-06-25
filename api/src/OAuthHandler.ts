@@ -322,14 +322,12 @@ export class OAuthHandler<
    * field or as an explicit 'email' field, we need
    * to check if the email is already claimed by another user.
    */
-  async _getOAuthEmailClaimedBy(
-    idToken: DecodedIdToken
-  ): Promise<Record<string, any> | null> {
+  async _getUserByEmail(email: string): Promise<Record<string, any> | null> {
     let maybeExistingUser
 
     maybeExistingUser = await this.dbUserAccessor.findFirst({
       where: {
-        [this.dbAuthHandlerInstance.options.authFields.username]: idToken.email,
+        [this.dbAuthHandlerInstance.options.authFields.username]: email,
       },
     })
 
@@ -341,7 +339,7 @@ export class OAuthHandler<
     // do this in a try/catch because the email field might not exist
     try {
       maybeExistingUser = await this.dbUserAccessor.findFirst({
-        where: { email: idToken.email },
+        where: { email: email },
       })
     } catch {
       maybeExistingUser = null
@@ -433,16 +431,14 @@ export class OAuthHandler<
     }
 
     // check if there is already a user with this email.
-    const maybeExistingUser = await this._getOAuthEmailClaimedBy(idToken)
+    const maybeExistingUser = await this._getUserByEmail(idToken.email)
 
     // if NOT logged in:
     if (!currentUser) {
-      // if there's already a user with this email, link to that user.
+      // if there's already a user with this email, but no user is currently logged in, throw an error that there's already an account using this email.
       if (maybeExistingUser) {
-        return await this._linkProviderToUser(
-          provider,
-          idToken,
-          maybeExistingUser
+        throw new Error(
+          "There is already an account using this email. If that's you, please log in and link your account."
         )
       }
       // if there isn't, create a new user and link to that user.
