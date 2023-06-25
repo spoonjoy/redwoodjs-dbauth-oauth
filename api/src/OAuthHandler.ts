@@ -146,7 +146,7 @@ export class OAuthHandler<
       linkAppleAccount: 'POST',
       linkGoogleAccount: 'GET',
       unlinkAccount: 'DELETE',
-      loginWithApple: 'GET',
+      loginWithApple: 'POST',
       loginWithGoogle: 'GET',
     }
   }
@@ -240,20 +240,17 @@ export class OAuthHandler<
     let url
     let client_id
     let client_secret
-    let redirectMethod
 
     switch (provider) {
       case 'apple':
         url = 'https://appleid.apple.com/auth/token'
         client_id = process.env.APPLE_CLIENT_ID || ''
         client_secret = this._getAppleAuthClientSecret()
-        redirectMethod = 'linkAppleAccount'
         break
       case 'google':
         url = 'https://oauth2.googleapis.com/token'
         client_id = process.env.GOOGLE_CLIENT_ID || ''
         client_secret = process.env.GOOGLE_CLIENT_SECRET || ''
-        redirectMethod = 'linkGoogleAccount'
         break
       default:
         throw new Error(`Unknown provider: ${provider}`)
@@ -262,7 +259,9 @@ export class OAuthHandler<
       code,
       client_id,
       client_secret,
-      redirect_uri: `${process.env.RWJS_API_URL}/auth/oauth?method=${redirectMethod}`,
+      redirect_uri: `${
+        process.env.RWJS_API_URL
+      }/auth/oauth?method=${this._getOAuthMethod()}`, // this needs to be the exact same as the one used to get the code
       grant_type: 'authorization_code',
     }
 
@@ -306,13 +305,36 @@ export class OAuthHandler<
     return token
   }
 
-  _createLinkAccountResponse(oAuthRecord: any) {
+  _linkAccountResponse(oAuthRecord: any) {
     // If this exists, it should be a redirect back to the app
     const redirectBackUrl = this._getStateParam()
     return [
       oAuthRecord,
       {
         location: `${redirectBackUrl}?linkedAccount=${oAuthRecord.provider.toLowerCase()}`,
+      },
+      {
+        statusCode: 303,
+      },
+    ]
+  }
+
+  _loginResonseWithRedirect(user: Record<string, any>) {
+    const sessionData = {
+      id: user[this.dbAuthHandlerInstance.options.authFields.id],
+    }
+
+    const csrfToken = DbAuthHandler.CSRF_TOKEN
+
+    return [
+      sessionData,
+      {
+        location: process.env.FE_URL,
+        'csrf-token': csrfToken,
+        ...this.dbAuthHandlerInstance._createSessionHeader(
+          sessionData,
+          csrfToken
+        ),
       },
       {
         statusCode: 303,
@@ -400,7 +422,7 @@ export class OAuthHandler<
       },
     })
 
-    return this._createLinkAccountResponse(newOAuthRecord)
+    return this._linkAccountResponse(newOAuthRecord)
   }
 
   async _createUserAndLinkProvider(idToken: DecodedIdToken) {
@@ -533,7 +555,7 @@ export class OAuthHandler<
       throw new Error('No user found for this provider user id')
     }
 
-    if (!this.dbAuthHandlerInstance.options.login.enabled) {
+    if (this.dbAuthHandlerInstance.options.login.enabled === false) {
       throw new Error('Login is not enabled')
     }
 
@@ -549,7 +571,7 @@ export class OAuthHandler<
       throw new OAuthError.NoUserIdError()
     }
 
-    return this.dbAuthHandlerInstance._loginResponse(handlerUser)
+    return this._loginResonseWithRedirect(handlerUser)
   }
 
   async loginWithApple() {
