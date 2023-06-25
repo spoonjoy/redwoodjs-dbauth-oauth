@@ -103,6 +103,7 @@ export type OAuthMethodNames =
   | 'linkGoogleAccount'
   | 'linkAppleAccount'
   | 'unlinkAccount'
+  | 'loginWithProvider'
 
 type Params = {
   code?: string
@@ -129,7 +130,12 @@ export class OAuthHandler<
 
   // class constant: list of methods that are supported
   static get METHODS(): OAuthMethodNames[] {
-    return ['linkGoogleAccount', 'linkAppleAccount', 'unlinkAccount']
+    return [
+      'linkGoogleAccount',
+      'linkAppleAccount',
+      'unlinkAccount',
+      'loginWithProvider',
+    ]
   }
 
   // class constant: maps the functions to their required HTTP verb for access
@@ -138,6 +144,7 @@ export class OAuthHandler<
       linkGoogleAccount: 'GET',
       linkAppleAccount: 'POST',
       unlinkAccount: 'DELETE',
+      loginWithProvider: 'POST',
     }
   }
 
