@@ -100,10 +100,11 @@ interface DecodedIdToken {
 }
 
 export type OAuthMethodNames =
-  | 'linkGoogleAccount'
   | 'linkAppleAccount'
+  | 'linkGoogleAccount'
   | 'unlinkAccount'
-  | 'loginWithProvider'
+  | 'loginWithApple'
+  | 'loginWithGoogle'
 
 type Params = {
   code?: string
@@ -131,20 +132,22 @@ export class OAuthHandler<
   // class constant: list of methods that are supported
   static get METHODS(): OAuthMethodNames[] {
     return [
-      'linkGoogleAccount',
       'linkAppleAccount',
+      'linkGoogleAccount',
       'unlinkAccount',
-      'loginWithProvider',
+      'loginWithApple',
+      'loginWithGoogle',
     ]
   }
 
   // class constant: maps the functions to their required HTTP verb for access
   static get VERBS() {
     return {
-      linkGoogleAccount: 'GET',
       linkAppleAccount: 'POST',
+      linkGoogleAccount: 'GET',
       unlinkAccount: 'DELETE',
-      loginWithProvider: 'POST',
+      loginWithApple: 'GET',
+      loginWithGoogle: 'GET',
     }
   }
 
@@ -495,13 +498,13 @@ export class OAuthHandler<
     }
   }
 
-  async linkGoogleAccount() {
-    this.params.provider = 'google'
+  async linkAppleAccount() {
+    this.params.provider = 'apple'
     return this._linkProviderAccount()
   }
 
-  async linkAppleAccount() {
-    this.params.provider = 'apple'
+  async linkGoogleAccount() {
+    this.params.provider = 'google'
     return this._linkProviderAccount()
   }
 
@@ -522,7 +525,7 @@ export class OAuthHandler<
     return this._createUnlinkAccountResponse(deletedRecord)
   }
 
-  async loginWithProvider() {
+  async _loginWithProvider() {
     const idToken = await this._getTokenFromProvider()
     const user = await this._getUserByProviderUserId(idToken.sub)
 
@@ -547,6 +550,16 @@ export class OAuthHandler<
     }
 
     return this.dbAuthHandlerInstance._loginResponse(handlerUser)
+  }
+
+  async loginWithApple() {
+    this.params.provider = 'apple'
+    return this._loginWithProvider()
+  }
+
+  async loginWithGoogle() {
+    this.params.provider = 'google'
+    return this._loginWithProvider()
   }
 
   async invoke() {

@@ -1,17 +1,24 @@
+type Provider = 'apple' | 'google'
+
+interface IGetOAuthUrlsConfig {
+  currentUrl?: string
+  method: 'link' | 'signup' | 'login'
+}
+
 export default class OAuthClient {
   constructor() {
     this.getOAuthUrls = this.getOAuthUrls.bind(this)
   }
-  getOAuthUrls(currentUrl = '') {
+  getOAuthUrls(config: IGetOAuthUrlsConfig) {
     const authUrls = {
-      apple: this.getAppleAuthUrl(currentUrl),
-      google: this.getGoogleAuthUrl(currentUrl),
+      apple: this.getAppleAuthUrl(config),
+      google: this.getGoogleAuthUrl(config),
     }
 
     return authUrls
   }
 
-  async unlinkAccount(provider: 'apple' | 'google') {
+  async unlinkAccount(provider: Provider) {
     const response = await fetch(
       `${process.env.RWJS_API_URL}/auth/oauth?method=unlinkAccount`,
       {
@@ -26,15 +33,61 @@ export default class OAuthClient {
     return response.json()
   }
 
-  private getGoogleAuthUrl(currentUrl = '') {
+  private getAppleAuthUrl(config: IGetOAuthUrlsConfig) {
+    if (!process.env.FE_URL || !process.env.APPLE_CLIENT_ID) {
+      return undefined
+    }
+
+    let authMethod
+    switch (config.method) {
+      case 'link':
+        authMethod = 'linkAppleAccount'
+        break
+      case 'signup':
+        authMethod = 'signupWithApple'
+        break
+      case 'login':
+        authMethod = 'loginWithApple'
+        break
+    }
+
+    const rootUrl = 'https://appleid.apple.com/auth/authorize'
+    const options = {
+      state: config.currentUrl || '',
+      redirect_uri: `${process.env.RWJS_API_URL}/auth/oauth?method=${authMethod}`,
+      client_id: process.env.APPLE_CLIENT_ID,
+      response_type: 'code',
+      response_mode: 'form_post',
+      scope: 'name email',
+    }
+
+    const queryString = new URLSearchParams(options).toString()
+
+    return `${rootUrl}?${queryString}`
+  }
+
+  private getGoogleAuthUrl(config: IGetOAuthUrlsConfig) {
     if (!process.env.RWJS_API_URL || !process.env.GOOGLE_CLIENT_ID) {
       return undefined
     }
 
+    let authMethod
+    switch (config.method) {
+      case 'link':
+        authMethod = 'linkGoogleAccount'
+        break
+      case 'signup':
+        authMethod = 'signupWithGoogle'
+        break
+      case 'login':
+        authMethod = 'loginWithGoogle'
+        break
+    }
+
     const rootUrl = 'https://accounts.google.com/o/oauth2/v2/auth'
     const options = {
-      state: currentUrl,
-      redirect_uri: `${process.env.RWJS_API_URL}/auth/oauth?method=linkGoogleAccount`,
+      state: config.currentUrl || '',
+      redirect_uri: `${process.env.RWJS_API_URL}/auth/oauth?method=${authMethod}}`,
       client_id: process.env.GOOGLE_CLIENT_ID,
       access_type: 'offline',
       response_type: 'code',
@@ -50,27 +103,6 @@ export default class OAuthClient {
     const googleAuthUrl = `${rootUrl}?${queryString}`
 
     return googleAuthUrl
-  }
-
-  // based on https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_js/incorporating_sign_in_with_apple_into_other_platforms#3332113
-  private getAppleAuthUrl(currentUrl = '') {
-    if (!process.env.FE_URL || !process.env.APPLE_CLIENT_ID) {
-      return undefined
-    }
-
-    const rootUrl = 'https://appleid.apple.com/auth/authorize'
-    const options = {
-      state: currentUrl,
-      redirect_uri: `${process.env.RWJS_API_URL}/auth/oauth?method=linkAppleAccount`,
-      client_id: process.env.APPLE_CLIENT_ID,
-      response_type: 'code',
-      response_mode: 'form_post',
-      scope: 'name email',
-    }
-
-    const queryString = new URLSearchParams(options).toString()
-
-    return `${rootUrl}?${queryString}`
   }
 }
 
