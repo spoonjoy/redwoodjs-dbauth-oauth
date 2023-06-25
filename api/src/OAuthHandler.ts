@@ -11,6 +11,8 @@ import jwt from 'jsonwebtoken'
 import md5 from 'md5'
 import { v4 as uuidv4 } from 'uuid'
 
+type Provider = 'apple' | 'google'
+
 export interface OAuthHandlerOptions {
   /**
    * Provide prisma db client
@@ -193,7 +195,7 @@ export class OAuthHandler<
     return state
   }
 
-  _getProviderParam() {
+  _getProviderParam(): Provider {
     const provider = this.params.provider
 
     if (!provider || String(provider).trim() === '') {
@@ -219,10 +221,9 @@ export class OAuthHandler<
     return token
   }
 
-  async _getTokenFromProvider(
-    provider: 'apple' | 'google'
-  ): Promise<DecodedIdToken> {
+  async _getTokenFromProvider(): Promise<DecodedIdToken> {
     const code = this._getCodeParam()
+    const provider = this._getProviderParam()
 
     let url
     let client_id
@@ -348,10 +349,11 @@ export class OAuthHandler<
   }
 
   async _linkProviderToUser(
-    provider: 'apple' | 'google',
     idToken: DecodedIdToken,
     user: Record<string, any>
   ) {
+    const provider = this._getProviderParam()
+
     const newOAuthRecord = await this.dbOAuthAccessor.create({
       data: {
         provider: provider.toUpperCase(),
@@ -363,10 +365,9 @@ export class OAuthHandler<
     return this._createLinkAccountResponse(newOAuthRecord)
   }
 
-  async _createUserAndLinkProvider(
-    provider: 'apple' | 'google',
-    idToken: DecodedIdToken
-  ) {
+  async _createUserAndLinkProvider(idToken: DecodedIdToken) {
+    const provider = this._getProviderParam()
+
     const generatedPass = new Crypto()
       .getRandomValues(new Uint8Array(32))
       .toString()
@@ -419,7 +420,8 @@ export class OAuthHandler<
     return this._linkProviderToUser(provider, idToken, newUser)
   }
 
-  async _linkProviderAccount(provider: 'apple' | 'google') {
+  async _linkProviderAccount() {
+    const provider = this._getProviderParam()
     const idToken = await this._getTokenFromProvider(provider)
 
     let currentUser
@@ -461,11 +463,13 @@ export class OAuthHandler<
   }
 
   async linkGoogleAccount() {
-    return this._linkProviderAccount('google')
+    this.params.provider = 'google'
+    return this._linkProviderAccount()
   }
 
   async linkAppleAccount() {
-    return this._linkProviderAccount('apple')
+    this.params.provider = 'google'
+    return this._linkProviderAccount()
   }
 
   async unlinkAccount() {
@@ -485,7 +489,9 @@ export class OAuthHandler<
     return this._createUnlinkAccountResponse(deletedRecord)
   }
 
-  async signInWithProvider() {}
+  async signInWithProvider() {
+    const provider = this._getProviderParam()
+  }
 
   async invoke() {
     const request = normalizeRequest(this.event)
