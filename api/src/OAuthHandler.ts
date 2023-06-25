@@ -11,6 +11,8 @@ import jwt from 'jsonwebtoken'
 import md5 from 'md5'
 import { v4 as uuidv4 } from 'uuid'
 
+import * as OAuthError from './errors'
+
 type Provider = 'apple' | 'google'
 
 export interface OAuthHandlerOptions {
@@ -348,6 +350,32 @@ export class OAuthHandler<
     return maybeExistingUser
   }
 
+  async _getUserByProviderUserId(
+    providerUserId: string
+  ): Promise<Record<string, any> | null> {
+    const provider = this._getProviderParam()
+
+    const oAuthRecord = await this.dbOAuthAccessor.findFirst({
+      where: {
+        provider: provider.toUpperCase(),
+        providerUserId: providerUserId,
+      },
+    })
+
+    if (oAuthRecord) {
+      const user = await this.dbUserAccessor.findUnique({
+        where: {
+          [this.dbAuthHandlerInstance.options.authFields.id]:
+            oAuthRecord.userId,
+        },
+      })
+
+      return user
+    }
+
+    return null
+  }
+
   async _linkProviderToUser(
     idToken: DecodedIdToken,
     user: Record<string, any>
@@ -366,8 +394,6 @@ export class OAuthHandler<
   }
 
   async _createUserAndLinkProvider(idToken: DecodedIdToken) {
-    const provider = this._getProviderParam()
-
     const generatedPass = new Crypto()
       .getRandomValues(new Uint8Array(32))
       .toString()
@@ -490,7 +516,30 @@ export class OAuthHandler<
   }
 
   async signInWithProvider() {
-    const provider = this._getProviderParam()
+    const idToken = await this._getTokenFromProvider()
+    const user = await this._getUserByProviderUserId(idToken.sub)
+
+    if (!user) {
+      throw new Error('No user found for this provider user id')
+    }
+
+    if (!this.dbAuthHandlerInstance.options.login.enabled) {
+      throw new Error('Login is not enabled')
+    }
+
+    // the below is straight from the DBAuthHandler's login() method
+    const handlerUser = await this.dbAuthHandlerInstance.options.login.handler(
+      user as TUser
+    )
+
+    if (
+      handlerUser == null ||
+      handlerUser[this.dbAuthHandlerInstance.options.authFields.id] == null
+    ) {
+      throw new OAuthError.NoUserIdError()
+    }
+
+    return this.dbAuthHandlerInstance._loginResponse(handlerUser)
   }
 
   async invoke() {
