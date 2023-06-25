@@ -8,6 +8,9 @@ import type { APIGatewayProxyEvent, Context as LambdaContext } from 'aws-lambda'
 import { PrismaClient } from '@prisma/client'
 import jwt from 'jsonwebtoken'
 
+import md5 from 'md5'
+import { v4 as uuidv4 } from 'uuid'
+
 export interface OAuthHandlerOptions {
   /**
    * Provide prisma db client
@@ -296,7 +299,7 @@ export class OAuthHandler<
     return [
       oAuthRecord,
       {
-        location: redirectBackUrl,
+        location: `${redirectBackUrl}?linkedAccount=${oAuthRecord.provider.toLowerCase()}`,
       },
       {
         statusCode: 303,
@@ -304,8 +307,122 @@ export class OAuthHandler<
     ]
   }
 
+  _createUnlinkAccountResponse(oAuthRecord: any) {
+    return [
+      oAuthRecord,
+      {},
+      {
+        statusCode: 200,
+      },
+    ]
+  }
+
+  /**
+   * In case the user model records the email, either as the configured username
+   * field or as an explicit 'email' field, we need
+   * to check if the email is already claimed by another user.
+   */
+  async _getOAuthEmailClaimedBy(
+    idToken: DecodedIdToken
+  ): Promise<Record<string, any> | null> {
+    let maybeExistingUser
+
+    maybeExistingUser = await this.dbUserAccessor.findFirst({
+      where: {
+        [this.dbAuthHandlerInstance.options.authFields.username]: idToken.email,
+      },
+    })
+
+    if (maybeExistingUser) {
+      return maybeExistingUser
+    }
+
+    // if that didn't work, try to find a user with an explicit email field
+    // do this in a try/catch because the email field might not exist
+    try {
+      maybeExistingUser = await this.dbUserAccessor.findFirst({
+        where: { email: idToken.email },
+      })
+    } catch {
+      maybeExistingUser = null
+    }
+    return maybeExistingUser
+  }
+
+  async _linkProviderToUser(
+    provider: 'apple' | 'google',
+    idToken: DecodedIdToken,
+    user: Record<string, any>
+  ) {
+    const newOAuthRecord = await this.dbOAuthAccessor.create({
+      data: {
+        provider: provider.toUpperCase(),
+        providerUserId: idToken.sub,
+        userId: user[this.dbAuthHandlerInstance.options.authFields.id],
+      },
+    })
+
+    return this._createLinkAccountResponse(newOAuthRecord)
+  }
+
+  async _createUserAndLinkProvider(
+    provider: 'apple' | 'google',
+    idToken: DecodedIdToken
+  ) {
+    const generatedPass = new Crypto()
+      .getRandomValues(new Uint8Array(32))
+      .toString()
+    const [hashedPassword, salt] = hashPassword(generatedPass)
+
+    const usesEmailAsUsername =
+      this.dbAuthHandlerInstance.options.authFields.username === 'email'
+
+    let newUser: Record<string, any>
+    if (usesEmailAsUsername) {
+      newUser = await this.dbUserAccessor.create({
+        data: {
+          email: idToken.email,
+          hashedPassword,
+          salt,
+        },
+      })
+    } else {
+      const username_uniquifier = md5(uuidv4())
+      const newUsername =
+        idToken.email.split('@')[0] + '_' + username_uniquifier
+
+      // try to save the user's email as a field on the user model, which might not exist
+      try {
+        newUser = await this.dbUserAccessor.create({
+          data: {
+            [this.dbAuthHandlerInstance.options.authFields.username]:
+              newUsername,
+            email: idToken.email,
+            hashedPassword,
+            salt,
+          },
+        })
+      } catch {
+        // if that didn't work, just save the username
+        newUser = await this.dbUserAccessor.create({
+          data: {
+            [this.dbAuthHandlerInstance.options.authFields.username]:
+              newUsername,
+            hashedPassword,
+            salt,
+          },
+        })
+      }
+    }
+    if (!newUser) {
+      throw new Error('Unable to create new user')
+    }
+
+    return this._linkProviderToUser(provider, idToken, newUser)
+  }
+
   async _linkProviderAccount(provider: 'apple' | 'google') {
-    const userToken = await this._getTokenFromProvider(provider)
+    const idToken = await this._getTokenFromProvider(provider)
 
     let currentUser
 
@@ -316,48 +433,21 @@ export class OAuthHandler<
     }
 
     // check if there is already a user with this email.
-    const maybeExistingUser = await this.dbUserAccessor.findUnique({
-      where: { email: userToken.email },
-    })
+    const maybeExistingUser = await this._getOAuthEmailClaimedBy(idToken)
 
     // if NOT logged in:
     if (!currentUser) {
       // if there's already a user with this email, link to that user.
       if (maybeExistingUser) {
-        const newOAuthRecord = await this.dbOAuthAccessor.create({
-          data: {
-            provider: provider.toUpperCase(),
-            providerUserId: userToken.sub,
-            userId: maybeExistingUser.id,
-          },
-        })
-
-        return this._createLinkAccountResponse(newOAuthRecord)
+        return await this._linkProviderToUser(
+          provider,
+          idToken,
+          maybeExistingUser
+        )
       }
       // if there isn't, create a new user and link to that user.
       else {
-        const generatedPass = new Crypto()
-          .getRandomValues(new Uint8Array(32))
-          .toString()
-        const [hashedPassword, salt] = hashPassword(generatedPass)
-        const newUser = await this.dbUserAccessor.create({
-          data: {
-            email: userToken.email,
-            username: userToken.email,
-            hashedPassword,
-            salt,
-          },
-        })
-
-        const newOAuthRecord = await this.dbOAuthAccessor.create({
-          data: {
-            provider: provider.toUpperCase(),
-            providerUserId: userToken.sub,
-            userId: newUser.id,
-          },
-        })
-
-        return this._createLinkAccountResponse(newOAuthRecord)
+        return await this._createUserAndLinkProvider(provider, idToken)
       }
     }
 
@@ -369,14 +459,7 @@ export class OAuthHandler<
       }
       // otherwise, link it to the current account.
       else {
-        const newOAuthRecord = await this.dbOAuthAccessor.create({
-          data: {
-            provider: provider.toUpperCase(),
-            providerUserId: userToken.sub,
-            userId: currentUser.id,
-          },
-        })
-        return this._createLinkAccountResponse(newOAuthRecord)
+        return await this._linkProviderToUser(provider, idToken, currentUser)
       }
     }
   }
@@ -394,13 +477,19 @@ export class OAuthHandler<
 
     const currentUser = await this.dbAuthHandlerInstance._getCurrentUser()
 
-    return await this.dbOAuthAccessor.deleteMany({
+    const deletedRecord = await this.dbOAuthAccessor.delete({
       where: {
-        userId: currentUser.id,
-        provider,
+        userId_provider: {
+          userId: currentUser.id,
+          provider: provider.toUpperCase(),
+        },
       },
     })
+
+    return this._createUnlinkAccountResponse(deletedRecord)
   }
+
+  async signInWithProvider() {}
 
   async invoke() {
     const request = normalizeRequest(this.event)

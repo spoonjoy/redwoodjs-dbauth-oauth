@@ -702,8 +702,12 @@ __metadata:
     "@redwoodjs/api": 5.0.0
     "@redwoodjs/auth-dbauth-api": 5.3.0
     "@types/aws-lambda": ^8.10.119
+    "@types/md5": ^2.3.2
+    "@types/uuid": ^9.0.2
     aws-lambda: ^1.0.7
     jsonwebtoken: ^9.0.0
+    md5: ^2.3.0
+    uuid: ^9.0.0
   languageName: unknown
   linkType: soft
 
@@ -781,6 +785,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/md5@npm:^2.3.2":
+  version: 2.3.2
+  resolution: "@types/md5@npm:2.3.2"
+  checksum: ce59779c5aa9bcafe6e089f7a0be2f25fb4661d437809dd7e895e13e9369855aeee8521a0a954bb38468cd8ed2d7c84d5dbb3ba37544f5a11c8a199e5a8561b6
+  languageName: node
+  linkType: hard
+
 "@types/minimatch@npm:^3.0.3":
   version: 3.0.5
   resolution: "@types/minimatch@npm:3.0.5"
@@ -838,6 +849,13 @@ __metadata:
   version: 7.5.0
   resolution: "@types/semver@npm:7.5.0"
   checksum: 0a64b9b9c7424d9a467658b18dd70d1d781c2d6f033096a6e05762d20ebbad23c1b69b0083b0484722aabf35640b78ccc3de26368bcae1129c87e9df028a22e2
+  languageName: node
+  linkType: hard
+
+"@types/uuid@npm:^9.0.2":
+  version: 9.0.2
+  resolution: "@types/uuid@npm:9.0.2"
+  checksum: 1754bcf3444e1e3aeadd6e774fc328eb53bc956665e2e8fb6ec127aa8e1f43d9a224c3d22a9a6233dca8dd81a12dc7fed4d84b8876dd5ec82d40f574f7ff8b68
   languageName: node
   linkType: hard
 
@@ -4438,7 +4456,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"md5@npm:2.3.0":
+"md5@npm:2.3.0, md5@npm:^2.3.0":
   version: 2.3.0
   resolution: "md5@npm:2.3.0"
   dependencies:

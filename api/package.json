@@ -25,10 +25,14 @@
     "@prisma/client": "4.15.0",
     "@redwoodjs/api": "5.0.0",
     "@redwoodjs/auth-dbauth-api": "5.3.0",
+    "@types/uuid": "^9.0.2",
     "aws-lambda": "^1.0.7",
-    "jsonwebtoken": "^9.0.0"
+    "jsonwebtoken": "^9.0.0",
+    "md5": "^2.3.0",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.119"
+    "@types/aws-lambda": "^8.10.119",
+    "@types/md5": "^2.3.2"
   }
 }

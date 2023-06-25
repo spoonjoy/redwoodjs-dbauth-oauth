@@ -13,12 +13,13 @@ export default class OAuthClient {
 
   async unlinkAccount(provider: 'apple' | 'google') {
     const response = await fetch(
-      `/auth/oauth?method=unlinkAccount&provider=${provider}`,
+      `${process.env.RWJS_API_URL}/auth/oauth?method=unlinkAccount`,
       {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ provider }),
       }
     )
 

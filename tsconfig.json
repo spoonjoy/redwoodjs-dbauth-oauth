@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES6",
     "moduleResolution": "node",
-    "declarationMap": true,
+    "declarationMap": false,
     "emitDeclarationOnly": false,
     "sourceMap": false,
     "composite": true,
