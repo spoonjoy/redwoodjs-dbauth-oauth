@@ -515,7 +515,7 @@ export class OAuthHandler<
     return this._createUnlinkAccountResponse(deletedRecord)
   }
 
-  async signInWithProvider() {
+  async loginWithProvider() {
     const idToken = await this._getTokenFromProvider()
     const user = await this._getUserByProviderUserId(idToken.sub)
 
