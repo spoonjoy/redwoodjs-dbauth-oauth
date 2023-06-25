@@ -106,7 +106,12 @@ export default class OAuthClient {
   }
 }
 
-export type OAuthInstanceType = Pick<
-  InstanceType<typeof OAuthClient>,
-  PublicMembers<InstanceType<typeof OAuthClient>>
->
+export type OAuthInstanceType = {
+  getOAuthUrls: (
+    config: IGetOAuthUrlsConfig
+  ) => Record<Provider, string | undefined>
+  unlinkAccount: (provider: Provider) => Promise<{
+    error?: unknown
+    provider?: string
+  }>
+}

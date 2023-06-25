@@ -49,7 +49,11 @@ function createOAuthProvider(
   return OAuthProvider
 }
 
-export function createOAuth(oAuthClient: OAuthInstanceType) {
+export function createOAuth(oAuthClient: OAuthInstanceType): {
+  OAuthContext: React.Context<OAuthInstanceType | undefined>
+  OAuthProvider: React.FC<OAuthProviderProps>
+  useOAuth: () => OAuthInstanceType
+} {
   const OAuthContext = createOAuthContext()
   const useOAuth = createUseOAuth(OAuthContext)
   const OAuthProvider = createOAuthProvider(OAuthContext, oAuthClient)
