@@ -417,12 +417,12 @@ export class OAuthHandler<
       throw new Error('Unable to create new user')
     }
 
-    return this._linkProviderToUser(provider, idToken, newUser)
+    return this._linkProviderToUser(idToken, newUser)
   }
 
   async _linkProviderAccount() {
     const provider = this._getProviderParam()
-    const idToken = await this._getTokenFromProvider(provider)
+    const idToken = await this._getTokenFromProvider()
 
     let currentUser
 
@@ -445,7 +445,7 @@ export class OAuthHandler<
       }
       // if there isn't, create a new user and link to that user.
       else {
-        return await this._createUserAndLinkProvider(provider, idToken)
+        return await this._createUserAndLinkProvider(idToken)
       }
     }
 
@@ -457,7 +457,7 @@ export class OAuthHandler<
       }
       // otherwise, link it to the current account.
       else {
-        return await this._linkProviderToUser(provider, idToken, currentUser)
+        return await this._linkProviderToUser(idToken, currentUser)
       }
     }
   }
@@ -468,7 +468,7 @@ export class OAuthHandler<
   }
 
   async linkAppleAccount() {
-    this.params.provider = 'google'
+    this.params.provider = 'apple'
     return this._linkProviderAccount()
   }
 
