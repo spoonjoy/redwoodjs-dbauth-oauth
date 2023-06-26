@@ -305,13 +305,20 @@ export class OAuthHandler<
     return token
   }
 
-  _linkAccountResponse(oAuthRecord: any) {
+  _redirectToSite(
+    body: unknown,
+    headers: Record<string, unknown> = {},
+    queryParams: Record<string, string> = {}
+  ) {
     // If this exists, it should be a redirect back to the app
-    const redirectBackUrl = this._getStateParam()
+    const redirectBackUrl = this._getStateParam() || process.env.FE_URL
+
+    const queryString = new URLSearchParams(queryParams).toString()
     return [
-      oAuthRecord,
+      body,
       {
-        location: `${redirectBackUrl}?linkedAccount=${oAuthRecord.provider.toLowerCase()}`,
+        location: `${redirectBackUrl}${queryString && '?'}${queryString}`,
+        ...headers,
       },
       {
         statusCode: 303,
@@ -319,27 +326,28 @@ export class OAuthHandler<
     ]
   }
 
-  _loginResonseWithRedirect(user: Record<string, any>) {
+  _linkAccountResponse(oAuthRecord: { provider: string }) {
+    return this._redirectToSite(
+      oAuthRecord,
+      {},
+      { linkedAccount: oAuthRecord.provider.toLowerCase() }
+    )
+  }
+
+  _loginResponseWithRedirect(user: Record<string, any>) {
     const sessionData = {
       id: user[this.dbAuthHandlerInstance.options.authFields.id],
     }
 
     const csrfToken = DbAuthHandler.CSRF_TOKEN
 
-    return [
-      sessionData,
-      {
-        location: process.env.FE_URL,
-        'csrf-token': csrfToken,
-        ...this.dbAuthHandlerInstance._createSessionHeader(
-          sessionData,
-          csrfToken
-        ),
-      },
-      {
-        statusCode: 303,
-      },
-    ]
+    return this._redirectToSite(sessionData, {
+      'csrf-token': csrfToken,
+      ...this.dbAuthHandlerInstance._createSessionHeader(
+        sessionData,
+        csrfToken
+      ),
+    })
   }
 
   _createUnlinkAccountResponse(oAuthRecord: any) {
@@ -479,7 +487,6 @@ export class OAuthHandler<
   }
 
   async _linkProviderAccount() {
-    const provider = this._getProviderParam()
     const idToken = await this._getTokenFromProvider()
 
     let currentUser
@@ -571,8 +578,10 @@ export class OAuthHandler<
       throw new OAuthError.NoUserIdError()
     }
 
-    return this._loginResonseWithRedirect(handlerUser)
+    return this._loginResponseWithRedirect(handlerUser)
   }
+
+  // async _signupWithProvider() {}
 
   async loginWithApple() {
     this.params.provider = 'apple'
