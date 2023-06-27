@@ -10,6 +10,7 @@ import jwt from 'jsonwebtoken'
 
 import md5 from 'md5'
 import { v4 as uuidv4 } from 'uuid'
+import { getRandomValues } from 'crypto'
 
 import * as OAuthError from './errors'
 
@@ -105,6 +106,8 @@ export type OAuthMethodNames =
   | 'unlinkAccount'
   | 'loginWithApple'
   | 'loginWithGoogle'
+  | 'signupWithApple'
+  | 'signupWithGoogle'
 
 type Params = {
   code?: string
@@ -137,6 +140,8 @@ export class OAuthHandler<
       'unlinkAccount',
       'loginWithApple',
       'loginWithGoogle',
+      'signupWithApple',
+      'signupWithGoogle',
     ]
   }
 
@@ -146,8 +151,10 @@ export class OAuthHandler<
       linkAppleAccount: 'GET',
       linkGoogleAccount: 'GET',
       unlinkAccount: 'DELETE',
-      loginWithApple: 'POST',
+      loginWithApple: 'GET',
       loginWithGoogle: 'GET',
+      signupWithApple: 'GET',
+      signupWithGoogle: 'GET',
     }
   }
 
@@ -433,10 +440,8 @@ export class OAuthHandler<
     return this._linkAccountResponse(newOAuthRecord)
   }
 
-  async _createUserAndLinkProvider(idToken: DecodedIdToken) {
-    const generatedPass = new Crypto()
-      .getRandomValues(new Uint8Array(32))
-      .toString()
+  async _createUserLinkProviderAndLogIn(idToken: DecodedIdToken) {
+    const generatedPass = getRandomValues(new Uint8Array(32)).toString()
     const [hashedPassword, salt] = hashPassword(generatedPass)
 
     const usesEmailAsUsername =
@@ -483,7 +488,10 @@ export class OAuthHandler<
       throw new Error('Unable to create new user')
     }
 
-    return this._linkProviderToUser(idToken, newUser)
+    // this is normally used just to link account to the user, but we want to log the user in
+    await this._linkProviderToUser(idToken, newUser)
+
+    return this._loginResponse(newUser)
   }
 
   async _linkProviderAccount() {
@@ -491,39 +499,27 @@ export class OAuthHandler<
 
     let currentUser
 
+    // this is handled the same way as DbAuthHandler.getToken()
     try {
       currentUser = await this.dbAuthHandlerInstance._getCurrentUser()
-    } catch {
-      currentUser = null
+    } catch (e: any) {
+      if (e.name === 'NotLoggedInError') {
+        return this.dbAuthHandlerInstance._logoutResponse()
+      } else {
+        return this.dbAuthHandlerInstance._logoutResponse({ error: e.message })
+      }
     }
 
     // check if there is already a user with this email.
     const maybeExistingUser = await this._getUserByEmail(idToken.email)
 
-    // if NOT logged in:
-    if (!currentUser) {
-      // if there's already a user with this email, but no user is currently logged in, throw an error that there's already an account using this email.
-      if (maybeExistingUser) {
-        throw new Error(
-          "There is already an account using this email. If that's you, please log in and link your account."
-        )
-      }
-      // if there isn't, create a new user and link to that user.
-      else {
-        return await this._createUserAndLinkProvider(idToken)
-      }
+    // if there's already a user with this email, check if it's the same as the user that's logged in - if it's not, throw an error that there's already an account using this email.
+    if (maybeExistingUser && maybeExistingUser.email !== currentUser.email) {
+      throw new Error('There is already an account using this email.')
     }
-
-    // if logged in:
+    // otherwise, link it to the current account.
     else {
-      // if there's already a user with this email, check if it's the same as the user that's logged in - if it's not, throw an error that there's already an account using this email.
-      if (maybeExistingUser && maybeExistingUser.email !== currentUser.email) {
-        throw new Error('There is already an account using this email.')
-      }
-      // otherwise, link it to the current account.
-      else {
-        return await this._linkProviderToUser(idToken, currentUser)
-      }
+      return await this._linkProviderToUser(idToken, currentUser)
     }
   }
 
@@ -554,14 +550,7 @@ export class OAuthHandler<
     return this._createUnlinkAccountResponse(deletedRecord)
   }
 
-  async _loginWithProvider() {
-    const idToken = await this._getTokenFromProvider()
-    const user = await this._getUserByProviderUserId(idToken.sub)
-
-    if (!user) {
-      throw new Error('No user found for this provider user id')
-    }
-
+  async _loginResponse(user: Record<string, any>) {
     if (this.dbAuthHandlerInstance.options.login.enabled === false) {
       throw new Error('Login is not enabled')
     }
@@ -581,7 +570,44 @@ export class OAuthHandler<
     return this._loginResponseWithRedirect(handlerUser)
   }
 
-  // async _signupWithProvider() {}
+  async _loginWithProvider() {
+    const idToken = await this._getTokenFromProvider()
+    const user = await this._getUserByProviderUserId(idToken.sub)
+
+    if (!user) {
+      throw new Error('No user found for this provider user id')
+    }
+
+    return this._loginResponse(user)
+  }
+
+  async _signupWithProvider() {
+    const idToken = await this._getTokenFromProvider()
+
+    // check if there is already a user with this email.
+    const maybeExistingUser = await this._getUserByEmail(idToken.email)
+
+    // if there's already a user with this email, but no user is currently logged in, throw an error that there's already an account using this email.
+    if (maybeExistingUser) {
+      throw new Error(
+        "There is already an account using this email. If that's you, please log in and link your account."
+      )
+    }
+    // if there isn't, create a new user and link to that user.
+    else {
+      return await this._createUserLinkProviderAndLogIn(idToken)
+    }
+  }
+
+  async signupWithApple() {
+    this.params.provider = 'apple'
+    return this._signupWithProvider()
+  }
+
+  async signupWithGoogle() {
+    this.params.provider = 'google'
+    return this._signupWithProvider()
+  }
 
   async loginWithApple() {
     this.params.provider = 'apple'
