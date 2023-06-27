@@ -152,6 +152,11 @@ export default class OAuthClient {
     // Google options are here: https://developers.google.com/identity/protocols/oauth2/javascript-implicit-flow#oauth-2.0-endpoints
     const options = {
       client_id,
+      /**
+       * Add more redirect URIs here:
+       * - Apple: https://developer.apple.com/account/resources/identifiers/list/serviceId
+       * - Google: https://console.cloud.google.com/apis/credentials
+       */
       redirect_uri: `${process.env.RWJS_API_URL}/auth/oauth?method=${authMethod}`,
       response_type: 'code',
       scope: scope,
