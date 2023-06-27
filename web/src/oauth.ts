@@ -1,4 +1,4 @@
-type Provider = 'apple' | 'google'
+export type Provider = 'apple' | 'google'
 
 interface IGetOAuthUrlsConfig {
   /**
@@ -118,7 +118,13 @@ export default class OAuthClient {
     let scope
     switch (provider) {
       case 'apple':
-        scope = 'name%20email'
+        /**
+         * no matter what you put here, you don't get anything back in the initial response, even though
+         * the apple documentation says it'll send back a 'user' object with the email and name (https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_js/incorporating_sign_in_with_apple_into_other_platforms/#3332115).
+         * additionally, no matter what you put here, you still get the email in the ID token.
+         */
+        scope = ''
+        // scope = 'name email'
         break
       case 'google':
         scope = [
@@ -133,7 +139,8 @@ export default class OAuthClient {
     switch (provider) {
       case 'apple':
         clientSpecificOptions = {
-          response_mode: 'form_post',
+          response_mode: 'query',
+          // response_mode: 'form_post',
         }
         break
       case 'google':
@@ -161,7 +168,7 @@ export default class OAuthClient {
 export type OAuthInstanceType = {
   getOAuthUrls: (
     config: IGetOAuthUrlsConfig
-  ) => Record<Provider, string | undefined>
+  ) => Partial<Record<Provider, string>>
   unlinkAccount: (provider: Provider) => Promise<{
     error?: unknown
     provider?: string

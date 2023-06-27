@@ -1,13 +1,15 @@
 import React, { ReactNode } from 'react'
 
-import OAuthClient, { OAuthInstanceType } from './oauth'
+import OAuthClient, { OAuthInstanceType, Provider } from './oauth'
 
 function createOAuthContext() {
   return React.createContext<OAuthInstanceType | undefined>(undefined)
 }
 
-export function createOAuthClient(): OAuthInstanceType {
-  const oAuthClient = new OAuthClient()
+export function createOAuthClient(config: {
+  enabledProviders: Provider[]
+}): OAuthInstanceType {
+  const oAuthClient = new OAuthClient(config.enabledProviders)
   return {
     getOAuthUrls: oAuthClient.getOAuthUrls,
     unlinkAccount: oAuthClient.unlinkAccount,

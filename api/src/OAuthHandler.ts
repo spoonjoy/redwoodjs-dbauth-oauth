@@ -143,7 +143,7 @@ export class OAuthHandler<
   // class constant: maps the functions to their required HTTP verb for access
   static get VERBS() {
     return {
-      linkAppleAccount: 'POST',
+      linkAppleAccount: 'GET',
       linkGoogleAccount: 'GET',
       unlinkAccount: 'DELETE',
       loginWithApple: 'POST',
