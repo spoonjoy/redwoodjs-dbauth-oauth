@@ -374,6 +374,18 @@ export class OAuthHandler<
     ]
   }
 
+  _createConnectedAccountsResponse(
+    connectedAccountsRecords: IConnectedAccountRecord[]
+  ) {
+    return [
+      connectedAccountsRecords,
+      {},
+      {
+        statusCode: 200,
+      },
+    ]
+  }
+
   /**
    * In case the user model records the email, either as the configured username
    * field or as an explicit 'email' field, we need
@@ -592,7 +604,7 @@ export class OAuthHandler<
       },
     })) as IConnectedAccountRecord[]
 
-    return this._getConnectedAccountsResponse(records)
+    return this._createConnectedAccountsResponse(records)
   }
 
   async signupWithApple() {
