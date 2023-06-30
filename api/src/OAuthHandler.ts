@@ -323,7 +323,7 @@ export class OAuthHandler<
   }
 
   _redirectToSite(
-    body: unknown,
+    body: any,
     headers: Record<string, unknown> = {},
     queryParams: Record<string, string> = {}
   ) {
@@ -343,7 +343,7 @@ export class OAuthHandler<
     ]
   }
 
-  _linkAccountResponse(oAuthRecord: { provider: string }) {
+  _linkAccountResponse(oAuthRecord: IConnectedAccountRecord) {
     return this._redirectToSite(
       oAuthRecord,
       {},
@@ -367,7 +367,7 @@ export class OAuthHandler<
     })
   }
 
-  _createUnlinkAccountResponse(oAuthRecord: any) {
+  _createUnlinkAccountResponse(oAuthRecord: IConnectedAccountRecord) {
     return [
       oAuthRecord,
       {},
@@ -451,13 +451,13 @@ export class OAuthHandler<
   ) {
     const provider = this._getProviderParam()
 
-    const newOAuthRecord = await this.dbOAuthAccessor.create({
+    const newOAuthRecord = (await this.dbOAuthAccessor.create({
       data: {
         provider: provider,
         providerUserId: idToken.sub,
         userId: user[this.dbAuthHandlerInstance.options.authFields.id],
       },
-    })
+    })) as IConnectedAccountRecord
 
     return this._linkAccountResponse(newOAuthRecord)
   }
@@ -645,14 +645,14 @@ export class OAuthHandler<
 
     const currentUser = await this.dbAuthHandlerInstance._getCurrentUser()
 
-    const deletedRecord = await this.dbOAuthAccessor.delete({
+    const deletedRecord = (await this.dbOAuthAccessor.delete({
       where: {
         userId_provider: {
           userId: currentUser[this.dbAuthHandlerInstance.options.authFields.id],
           provider: provider,
         },
       },
-    })
+    })) as IConnectedAccountRecord
 
     return this._createUnlinkAccountResponse(deletedRecord)
   }

@@ -39,7 +39,7 @@ export default class OAuthClient {
     return authUrls
   }
 
-  async unlinkAccount(provider: Provider) {
+  async unlinkAccount(provider: Provider): Promise<IConnectedAccountRecord> {
     const response = await fetch(
       `${process.env.RWJS_API_URL}/auth/oauth?method=unlinkAccount`,
       {
@@ -191,7 +191,7 @@ export type FTGetOAuthUrls = (
 
 export type FTUnlinkAccount = (provider: Provider) => Promise<{
   error?: unknown
-  provider?: string
+  connectedAccountRecord?: IConnectedAccountRecord
 }>
 
 export type FTGetConnectedAccounts = () => Promise<IConnectedAccountRecord[]>

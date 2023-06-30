@@ -51,7 +51,7 @@ const LinkOAuth = ({
       Object.keys(linkedAccounts).includes(linkedAccount) &&
       linkedAccounts[linkedAccount as 'google' | 'apple'] === true
     ) {
-      toast.success(`successfully connected ${linkedAccount.toLowerCase()}`)
+      toast.success(`successfully connected ${linkedAccount}`)
       window.history.replaceState(null, '', urlWithoutQSPs)
     } else {
       window.history.replaceState(null, '', urlWithoutQSPs)
@@ -63,7 +63,7 @@ const LinkOAuth = ({
     if (response.error) {
       console.log('error unlinking account', response.error)
       toast.error(`failed to disconnect ${provider}`)
-    } else if (response.provider?.toUpperCase() === provider.toUpperCase()) {
+    } else if (response.connectedAccountRecord?.provider === provider) {
       toast.success(`successfully disconnected ${provider}`)
       setLinkedAccounts((prev) => ({ ...prev, [provider]: false }))
     } else {
