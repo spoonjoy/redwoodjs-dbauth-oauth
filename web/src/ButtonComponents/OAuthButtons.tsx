@@ -6,7 +6,7 @@ import SignupWithOAuth from './SignupWithOAuth'
 import { FTGetOAuthUrls } from '../oauth'
 import { ILinkOAuthConfig } from './types'
 
-interface IOAuthBtnsProps {
+interface IOAuthButtonsProps {
   /**
    * The action to perform with the OAuth provider.
    * - `login` - login with the OAuth provider
@@ -37,12 +37,12 @@ interface IOAuthBtnsProps {
   linkOAuthConfig?: ILinkOAuthConfig
 }
 
-const OAuthBtns = ({
+const OAuthButtons = ({
   action,
   layoutClasses = 'flex flex-col gap-2',
   getOAuthUrls,
   linkOAuthConfig,
-}: IOAuthBtnsProps) => {
+}: IOAuthButtonsProps) => {
   if (!linkOAuthConfig && action === 'link') {
     throw new Error(
       'When the `action` is `link`, the `linkOAuthConfig` prop is required.'
@@ -67,4 +67,4 @@ const OAuthBtns = ({
   )
 }
 
-export default OAuthBtns
+export default OAuthButtons
