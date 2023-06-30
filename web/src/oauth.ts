@@ -185,10 +185,12 @@ export default class OAuthClient {
   }
 }
 
+export type GetOAuthUrlsFunctionType = (
+  config: IGetOAuthUrlsConfig
+) => Partial<Record<Provider, string>>
+
 export type OAuthInstanceType = {
-  getOAuthUrls: (
-    config: IGetOAuthUrlsConfig
-  ) => Partial<Record<Provider, string>>
+  getOAuthUrls: GetOAuthUrlsFunctionType
   unlinkAccount: (provider: Provider) => Promise<{
     error?: unknown
     provider?: string

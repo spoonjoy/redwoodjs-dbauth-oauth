@@ -1,8 +1,9 @@
-import { useOAuth } from 'src/auth'
+import React from 'react'
 
 import LinkOAuth from './LinkOAuth'
 import LoginWithOAuth from './LoginWithOAuth'
 import SignupWithOAuth from './SignupWithOAuth'
+import { GetOAuthUrlsFunctionType } from '../oauth'
 
 interface IOAuthBtnsProps {
   /**
@@ -19,13 +20,23 @@ interface IOAuthBtnsProps {
    * @default 'flex flex-col gap-2'
    */
   layoutClasses?: string
+  /**
+   * The function to call to get the OAuth URLs.
+   * This should be the `getOAuthUrls` function that you get back from the `useOAuth` hook.
+   * @example ```ts
+   * import { useOAuth } from 'src/auth'
+   * ...
+   * const { getOAuthUrls } = useOAuth()
+   * ```
+   */
+  getOAuthUrls: GetOAuthUrlsFunctionType
 }
 
 const OAuthBtns = ({
   action,
   layoutClasses = 'flex flex-col gap-2',
+  getOAuthUrls,
 }: IOAuthBtnsProps) => {
-  const { getOAuthUrls } = useOAuth()
   const oAuthUrls = getOAuthUrls({ method: action })
   return (
     <ul className={layoutClasses}>
