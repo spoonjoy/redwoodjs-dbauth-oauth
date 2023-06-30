@@ -115,6 +115,7 @@ export type OAuthMethodNames =
   | 'loginWithGoogle'
   | 'signupWithApple'
   | 'signupWithGoogle'
+  | 'getConnectedAccounts'
 
 type Params = {
   code?: string
@@ -149,6 +150,7 @@ export class OAuthHandler<
       'loginWithGoogle',
       'signupWithApple',
       'signupWithGoogle',
+      'getConnectedAccounts',
     ]
   }
 
@@ -162,6 +164,7 @@ export class OAuthHandler<
       loginWithGoogle: 'GET',
       signupWithApple: 'GET',
       signupWithGoogle: 'GET',
+      getConnectedAccounts: 'GET',
     }
   }
 
