@@ -1,7 +1,6 @@
 import React from 'react'
 
 import { useParams } from '@redwoodjs/router'
-import { toast } from '@redwoodjs/web/toast'
 
 import OAuthBtn from './OAuthBtn'
 import { ILinkOAuthConfig, IOAuthBtnsProps } from './types'
@@ -11,6 +10,9 @@ const LinkOAuth = ({
   oAuthUrls,
   unlinkAccount,
   getConnectedAccounts,
+  onLinkSuccess,
+  onUnlinkSuccess,
+  onUnlinkError,
 }: IOAuthBtnsProps & ILinkOAuthConfig) => {
   const urlWithoutQSPs = window.location.origin + window.location.pathname
 
@@ -49,27 +51,25 @@ const LinkOAuth = ({
   if (linkedAccount) {
     if (
       Object.keys(linkedAccounts).includes(linkedAccount) &&
-      linkedAccounts[linkedAccount as 'google' | 'apple'] === true
+      linkedAccounts[linkedAccount as Provider] === true
     ) {
-      toast.success(`successfully connected ${linkedAccount}`)
+      onLinkSuccess && onLinkSuccess(linkedAccount as Provider)
       window.history.replaceState(null, '', urlWithoutQSPs)
     } else {
       window.history.replaceState(null, '', urlWithoutQSPs)
     }
   }
 
-  const onUnlinkAccount = async (provider: 'apple' | 'google') => {
+  const onUnlinkAccount = async (provider: Provider) => {
     const response = await unlinkAccount(provider)
     if (response.error) {
       console.log('error unlinking account', response.error)
-      toast.error(`failed to disconnect ${provider}`)
+      onUnlinkError && onUnlinkError(provider, response.error)
     } else if (response.connectedAccountRecord?.provider === provider) {
-      toast.success(`successfully disconnected ${provider}`)
+      onUnlinkSuccess && onUnlinkSuccess(provider)
       setLinkedAccounts((prev) => ({ ...prev, [provider]: false }))
     } else {
-      toast(
-        `something might have gone wrong unlinking account, response was ${response}`
-      )
+      console.log('something might have gone wrong unlinking account', response)
     }
   }
 

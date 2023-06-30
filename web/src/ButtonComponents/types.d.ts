@@ -19,4 +19,19 @@ export interface ILinkOAuthConfig {
    * This should be the `getConnectedAccounts` function that you get back from the `useOAuth` hook.
    */
   getConnectedAccounts: FTGetConnectedAccounts
+  /**
+   * Optional callback to run when linking is successful.
+   * @example (linkedAccount) => toast.success(`successfully connected ${linkedAccount}`)
+   */
+  onLinkSuccess?: (linkedAccount: Provider) => void
+  /**
+   * Optional callback to run when unlinking is successful.
+   * @example (unlinkedAccount) => toast.success(`successfully disconnected ${unlinkedAccount}`)
+   */
+  onUnlinkSuccess?: (unlinkedAccount: Provider) => void
+  /**
+   * Optional callback to run when linking fails.
+   * @example (provider, error) => toast.error(`failed to connect ${provider}: ${error}`)
+   */
+  onUnlinkError?: (provider: Provider, error: unknown) => void
 }
