@@ -13,6 +13,7 @@ export function createOAuthClient(config: {
   return {
     getOAuthUrls: oAuthClient.getOAuthUrls,
     unlinkAccount: oAuthClient.unlinkAccount,
+    getConnectedAccounts: oAuthClient.getConnectedAccounts,
   }
 }
 

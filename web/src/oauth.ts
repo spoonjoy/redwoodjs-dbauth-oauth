@@ -1,5 +1,12 @@
 export type Provider = 'apple' | 'google'
 
+export interface IConnectedAccountRecord {
+  provider: Provider
+  providerUserId: string
+  userId: string
+  createdAt: Date
+}
+
 interface IGetOAuthUrlsConfig {
   /**
    * By default, the redirect URL will be to whatever page the user is on when
@@ -42,6 +49,14 @@ export default class OAuthClient {
         },
         body: JSON.stringify({ provider }),
       }
+    )
+
+    return response.json()
+  }
+
+  async getConnectedAccounts(): Promise<IConnectedAccountRecord[]> {
+    const response = await fetch(
+      `${process.env.RWJS_API_URL}/auth/oauth?method=getConnectedAccounts`
     )
 
     return response.json()
@@ -178,4 +193,5 @@ export type OAuthInstanceType = {
     error?: unknown
     provider?: string
   }>
+  getConnectedAccounts: () => Promise<IConnectedAccountRecord[]>
 }
