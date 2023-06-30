@@ -16,6 +16,13 @@ import * as OAuthError from './errors'
 
 type Provider = 'apple' | 'google'
 
+interface IConnectedAccountRecord {
+  provider: Provider
+  providerUserId: string
+  userId: string
+  createdAt: Date
+}
+
 export interface OAuthHandlerOptions {
   /**
    * Provide prisma db client
@@ -404,7 +411,7 @@ export class OAuthHandler<
 
     const oAuthRecord = await this.dbOAuthAccessor.findFirst({
       where: {
-        provider: provider.toUpperCase(),
+        provider: provider,
         providerUserId: providerUserId,
       },
     })
@@ -431,7 +438,7 @@ export class OAuthHandler<
 
     const newOAuthRecord = await this.dbOAuthAccessor.create({
       data: {
-        provider: provider.toUpperCase(),
+        provider: provider,
         providerUserId: idToken.sub,
         userId: user[this.dbAuthHandlerInstance.options.authFields.id],
       },
@@ -523,33 +530,6 @@ export class OAuthHandler<
     }
   }
 
-  async linkAppleAccount() {
-    this.params.provider = 'apple'
-    return this._linkProviderAccount()
-  }
-
-  async linkGoogleAccount() {
-    this.params.provider = 'google'
-    return this._linkProviderAccount()
-  }
-
-  async unlinkAccount() {
-    const provider = this._getProviderParam()
-
-    const currentUser = await this.dbAuthHandlerInstance._getCurrentUser()
-
-    const deletedRecord = await this.dbOAuthAccessor.delete({
-      where: {
-        userId_provider: {
-          userId: currentUser.id,
-          provider: provider.toUpperCase(),
-        },
-      },
-    })
-
-    return this._createUnlinkAccountResponse(deletedRecord)
-  }
-
   async _loginResponse(user: Record<string, any>) {
     if (this.dbAuthHandlerInstance.options.login.enabled === false) {
       throw new Error('Login is not enabled')
@@ -599,6 +579,22 @@ export class OAuthHandler<
     }
   }
 
+  async getConnectedAccounts() {
+    const currentUser = await this.dbAuthHandlerInstance._getCurrentUser()
+
+    if (!currentUser) {
+      throw new Error('Not logged in')
+    }
+
+    const records = (await this.dbOAuthAccessor.findMany({
+      where: {
+        userId: currentUser[this.dbAuthHandlerInstance.options.authFields.id],
+      },
+    })) as IConnectedAccountRecord[]
+
+    return this._getConnectedAccountsResponse(records)
+  }
+
   async signupWithApple() {
     this.params.provider = 'apple'
     return this._signupWithProvider()
@@ -617,6 +613,33 @@ export class OAuthHandler<
   async loginWithGoogle() {
     this.params.provider = 'google'
     return this._loginWithProvider()
+  }
+
+  async linkAppleAccount() {
+    this.params.provider = 'apple'
+    return this._linkProviderAccount()
+  }
+
+  async linkGoogleAccount() {
+    this.params.provider = 'google'
+    return this._linkProviderAccount()
+  }
+
+  async unlinkAccount() {
+    const provider = this._getProviderParam()
+
+    const currentUser = await this.dbAuthHandlerInstance._getCurrentUser()
+
+    const deletedRecord = await this.dbOAuthAccessor.delete({
+      where: {
+        userId_provider: {
+          userId: currentUser[this.dbAuthHandlerInstance.options.authFields.id],
+          provider: provider,
+        },
+      },
+    })
+
+    return this._createUnlinkAccountResponse(deletedRecord)
   }
 
   async invoke() {
