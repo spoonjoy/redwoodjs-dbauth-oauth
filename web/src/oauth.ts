@@ -185,15 +185,19 @@ export default class OAuthClient {
   }
 }
 
-export type GetOAuthUrlsFunctionType = (
+export type FTGetOAuthUrls = (
   config: IGetOAuthUrlsConfig
 ) => Partial<Record<Provider, string>>
 
+export type FTUnlinkAccount = (provider: Provider) => Promise<{
+  error?: unknown
+  provider?: string
+}>
+
+export type FTGetConnectedAccounts = () => Promise<IConnectedAccountRecord[]>
+
 export type OAuthInstanceType = {
-  getOAuthUrls: GetOAuthUrlsFunctionType
-  unlinkAccount: (provider: Provider) => Promise<{
-    error?: unknown
-    provider?: string
-  }>
-  getConnectedAccounts: () => Promise<IConnectedAccountRecord[]>
+  getOAuthUrls: FTGetOAuthUrls
+  unlinkAccount: FTUnlinkAccount
+  getConnectedAccounts: FTGetConnectedAccounts
 }

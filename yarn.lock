@@ -52,6 +52,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime-corejs3@npm:7.22.5":
+  version: 7.22.5
+  resolution: "@babel/runtime-corejs3@npm:7.22.5"
+  dependencies:
+    core-js-pure: ^3.30.2
+    regenerator-runtime: ^0.13.11
+  checksum: cdeabaa6858cedb0ec47c1245195a09a8fd2de06f4545614acb574d150a81d0e27eb9c08d69787b2c1ad4a1fc57919a3f0599f60d14914227c200563cd595503
+  languageName: node
+  linkType: hard
+
 "@eslint-community/eslint-utils@npm:^4.2.0":
   version: 4.4.0
   resolution: "@eslint-community/eslint-utils@npm:4.4.0"
@@ -625,6 +635,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@reach/polymorphic@npm:0.18.0":
+  version: 0.18.0
+  resolution: "@reach/polymorphic@npm:0.18.0"
+  peerDependencies:
+    react: ^16.8.0 || 17.x
+  checksum: 0d62260a55c71e0dc95f38867f24b3d699e0bb7ea2273c6fa5a1fa3d804269e2deb63a458f1f1eb7b74c32bc0add3ab31a1c2668c1dee6b2837187876d3c4cc2
+  languageName: node
+  linkType: hard
+
+"@reach/skip-nav@npm:0.18.0":
+  version: 0.18.0
+  resolution: "@reach/skip-nav@npm:0.18.0"
+  dependencies:
+    "@reach/polymorphic": 0.18.0
+  peerDependencies:
+    react: ^16.8.0 || 17.x
+    react-dom: ^16.8.0 || 17.x
+  checksum: d9d7847785e54ff6e5c9235bb4457ec36e924d90f563a2844a9bccc71b83b50e4b5718d42ab447c3d99cb364e25716a6e94b037a7a9141386f3d62d083f5859f
+  languageName: node
+  linkType: hard
+
 "@redwoodjs/api@npm:5.0.0":
   version: 5.0.0
   resolution: "@redwoodjs/api@npm:5.0.0"
@@ -666,6 +697,32 @@ __metadata:
     md5: 2.3.0
     uuid: 9.0.0
   checksum: 8ae520b867ccfac78158df62f0bd2abcd0e03b1a73f6488db62c7e7db1d43a0a26c0635acaf125d78edcb8c20d6c0b5761f11bc726eaae541c8a3d376847bfea
+  languageName: node
+  linkType: hard
+
+"@redwoodjs/auth@npm:5.4.1":
+  version: 5.4.1
+  resolution: "@redwoodjs/auth@npm:5.4.1"
+  dependencies:
+    "@babel/runtime-corejs3": 7.22.5
+    core-js: 3.31.0
+    react: 18.2.0
+  checksum: 157c8c228751c099c7c2dc210f1a9afd24f5f3575a5484e92efb2f810709f8d45b1c79558c8f018886f2846a34de152cde6095bbb1fcf5f6e2708d08729d0c05
+  languageName: node
+  linkType: hard
+
+"@redwoodjs/router@npm:^5.4.1":
+  version: 5.4.1
+  resolution: "@redwoodjs/router@npm:5.4.1"
+  dependencies:
+    "@babel/runtime-corejs3": 7.22.5
+    "@reach/skip-nav": 0.18.0
+    "@redwoodjs/auth": 5.4.1
+    core-js: 3.31.0
+  peerDependencies:
+    react: 18.2.0
+    react-dom: 18.2.0
+  checksum: 76aae3a6a2986b2422bd0cd058efcdc91b47419c1b6c5285a250628c6f0327727e64b5e20ea1d46b6ff79d36f6fac3ddc234fadb741f958373e1f04e23ee55be
   languageName: node
   linkType: hard
 
@@ -715,6 +772,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@spoonjoy/redwoodjs-dbauth-oauth-web@workspace:web"
   dependencies:
+    "@redwoodjs/router": ^5.4.1
     "@types/react": ^18.2.13
     react: 18.2.0
   languageName: unknown
@@ -1952,6 +2010,13 @@ __metadata:
   version: 3.30.2
   resolution: "core-js@npm:3.30.2"
   checksum: 73d47e2b9d9f502800973982d08e995bbf04832e20b04e04be31dd7607247158271315e9328788a2408190e291c7ffbefad141167b1e57dea9f983e1e723541e
+  languageName: node
+  linkType: hard
+
+"core-js@npm:3.31.0":
+  version: 3.31.0
+  resolution: "core-js@npm:3.31.0"
+  checksum: f7cf9b3010f7ca99c026d95b61743baca1a85512742ed2b67e8f65a72ac4f4fe0b90b00057783e886bdd39d3a295f42f845d33e7cba3973ed263df978343ab79
   languageName: node
   linkType: hard
 

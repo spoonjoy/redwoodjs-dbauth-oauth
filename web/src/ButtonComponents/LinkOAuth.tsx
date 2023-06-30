@@ -3,16 +3,16 @@ import React from 'react'
 import { useParams } from '@redwoodjs/router'
 import { toast } from '@redwoodjs/web/toast'
 
-import { useOAuth } from 'src/auth'
-
 import OAuthBtn from './OAuthBtn'
-import { IOAuthBtnsProps } from './types'
+import { ILinkOAuthConfig, IOAuthBtnsProps } from './types'
 import { Provider } from '../oauth'
 
-const LinkOAuth = ({ oAuthUrls }: IOAuthBtnsProps) => {
+const LinkOAuth = ({
+  oAuthUrls,
+  unlinkAccount,
+  getConnectedAccounts,
+}: IOAuthBtnsProps & ILinkOAuthConfig) => {
   const urlWithoutQSPs = window.location.origin + window.location.pathname
-
-  const { unlinkAccount, getConnectedAccounts } = useOAuth()
 
   const [linkedAccounts, setLinkedAccounts] = React.useState<{
     [key in Provider]: boolean | undefined
@@ -42,7 +42,6 @@ const LinkOAuth = ({ oAuthUrls }: IOAuthBtnsProps) => {
 
     fetchConnectedAccounts()
     // this is intentionally empty, we only want to run this on initial render
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const { linkedAccount } = useParams()

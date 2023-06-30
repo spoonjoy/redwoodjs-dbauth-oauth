@@ -3,7 +3,8 @@ import React from 'react'
 import LinkOAuth from './LinkOAuth'
 import LoginWithOAuth from './LoginWithOAuth'
 import SignupWithOAuth from './SignupWithOAuth'
-import { GetOAuthUrlsFunctionType } from '../oauth'
+import { FTGetOAuthUrls } from '../oauth'
+import { ILinkOAuthConfig } from './types'
 
 interface IOAuthBtnsProps {
   /**
@@ -29,14 +30,25 @@ interface IOAuthBtnsProps {
    * const { getOAuthUrls } = useOAuth()
    * ```
    */
-  getOAuthUrls: GetOAuthUrlsFunctionType
+  getOAuthUrls: FTGetOAuthUrls
+  /**
+   * When the `action` is `link`, this config is required.
+   */
+  linkOAuthConfig?: ILinkOAuthConfig
 }
 
 const OAuthBtns = ({
   action,
   layoutClasses = 'flex flex-col gap-2',
   getOAuthUrls,
+  linkOAuthConfig,
 }: IOAuthBtnsProps) => {
+  if (!linkOAuthConfig && action === 'link') {
+    throw new Error(
+      'When the `action` is `link`, the `linkOAuthConfig` prop is required.'
+    )
+  }
+
   const oAuthUrls = getOAuthUrls({ method: action })
   return (
     <ul className={layoutClasses}>
@@ -47,7 +59,8 @@ const OAuthBtns = ({
           case 'signup':
             return <SignupWithOAuth oAuthUrls={oAuthUrls} />
           case 'link':
-            return <LinkOAuth oAuthUrls={oAuthUrls} />
+            // linkOAuthConfig will always be defined here because we checked it above
+            return <LinkOAuth oAuthUrls={oAuthUrls} {...linkOAuthConfig!} />
         }
       })()}
     </ul>
