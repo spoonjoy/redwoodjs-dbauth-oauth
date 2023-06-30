@@ -1,3 +1,3 @@
-import OAuthBtns from './OAuthBtns'
+import OAuthButtons from './OAuthButtons'
 
-export { OAuthBtns }
+export { OAuthButtons }

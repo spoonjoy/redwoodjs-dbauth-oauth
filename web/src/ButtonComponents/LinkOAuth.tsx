@@ -3,7 +3,7 @@ import React from 'react'
 import { useParams } from '@redwoodjs/router'
 
 import OAuthBtn from './OAuthBtn'
-import { ILinkOAuthConfig, IOAuthBtnsProps } from './types'
+import { ILinkOAuthConfig, IOAuthBtnsProps } from './buttonTypes'
 import { Provider } from '../oauth'
 
 const LinkOAuth = ({

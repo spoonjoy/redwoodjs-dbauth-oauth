@@ -4,7 +4,7 @@ import LinkOAuth from './LinkOAuth'
 import LoginWithOAuth from './LoginWithOAuth'
 import SignupWithOAuth from './SignupWithOAuth'
 import { FTGetOAuthUrls } from '../oauth'
-import { ILinkOAuthConfig } from './types'
+import { ILinkOAuthConfig } from './buttonTypes'
 
 interface IOAuthButtonsProps {
   /**

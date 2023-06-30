@@ -1,6 +1,6 @@
 import React, { MouseEvent } from 'react'
 
-import { Provider } from '@spoonjoy/redwoodjs-dbauth-oauth-web'
+import { Provider } from '../oauth'
 
 import AppleLogo from './assets/logos/AppleLogo'
 import GoogleLogo from './assets/logos/GoogleLogo'

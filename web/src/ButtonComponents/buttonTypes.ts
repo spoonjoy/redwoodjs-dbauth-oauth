@@ -1,5 +1,4 @@
-import { Provider } from '@spoonjoy/redwoodjs-dbauth-oauth-web'
-import { FTUnlinkAccount, FTGetConnectedAccounts } from '../oauth'
+import { FTUnlinkAccount, FTGetConnectedAccounts, Provider } from '../oauth'
 
 export interface IOAuthBtnsProps {
   oAuthUrls: Partial<Record<Provider, string>>

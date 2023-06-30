@@ -1,7 +1,7 @@
 import React from 'react'
 
 import OAuthBtn from './OAuthBtn'
-import { IOAuthBtnsProps } from './types'
+import { IOAuthBtnsProps } from './buttonTypes'
 
 const SignupWithOAuth = ({ oAuthUrls }: IOAuthBtnsProps) => {
   return (

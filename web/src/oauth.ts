@@ -39,7 +39,7 @@ export default class OAuthClient {
     return authUrls
   }
 
-  async unlinkAccount(provider: Provider): Promise<IConnectedAccountRecord> {
+  async unlinkAccount(provider: Provider) {
     const response = await fetch(
       `${process.env.RWJS_API_URL}/auth/oauth?method=unlinkAccount`,
       {
