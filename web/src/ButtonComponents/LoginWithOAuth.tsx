@@ -1,3 +1,5 @@
+import React from 'react'
+
 import OAuthBtn from './OAuthBtn'
 import { IOAuthBtnsProps } from './types'
 

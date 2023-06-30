@@ -1,4 +1,4 @@
-import { Provider } from '@spoonjoy/redwoodjs-dbauth-oauth-web'
+import React from 'react'
 
 import { useParams } from '@redwoodjs/router'
 import { toast } from '@redwoodjs/web/toast'
@@ -7,6 +7,7 @@ import { useOAuth } from 'src/auth'
 
 import OAuthBtn from './OAuthBtn'
 import { IOAuthBtnsProps } from './types'
+import { Provider } from '../oauth'
 
 const LinkOAuth = ({ oAuthUrls }: IOAuthBtnsProps) => {
   const urlWithoutQSPs = window.location.origin + window.location.pathname
