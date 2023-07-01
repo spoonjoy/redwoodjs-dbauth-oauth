@@ -73,6 +73,13 @@ const LinkOAuth = ({
     }
   }
 
+  const OnUnlinkApple = async () => {
+    await onUnlinkAccount('apple')
+  }
+  const OnUnlinkGoogle = async () => {
+    await onUnlinkAccount('google')
+  }
+
   return (
     <>
       {oAuthUrls.apple && (
@@ -81,7 +88,7 @@ const LinkOAuth = ({
             <OAuthBtn
               provider="apple"
               action="unlink"
-              onClick={() => onUnlinkAccount('apple')}
+              onClick={OnUnlinkApple}
             />
           ) : (
             <OAuthBtn provider="apple" action="link" href={oAuthUrls.apple} />
@@ -94,7 +101,7 @@ const LinkOAuth = ({
             <OAuthBtn
               provider="google"
               action="unlink"
-              onClick={() => onUnlinkAccount('google')}
+              onClick={OnUnlinkGoogle}
             />
           ) : (
             <OAuthBtn provider="google" action="link" href={oAuthUrls.google} />
