@@ -17,15 +17,20 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && yarn run build:css",
     "watch": "tsc-watch --onSuccess \"yalc publish --push\" --onFailure \"echo 'Web build failed'\"",
-    "yalc:publish": "yalc publish --push"
+    "yalc:publish": "yalc publish --push",
+    "build:css": "postcss src/index.css -o dist/index.css"
   },
   "dependencies": {
     "@redwoodjs/router": "^5.4.1",
     "react": "18.2.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.13"
+    "@types/react": "^18.2.13",
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.24",
+    "postcss-cli": "^10.1.0",
+    "tailwindcss": "^3.3.2"
   }
 }
