@@ -60,24 +60,21 @@ const LinkOAuth = ({
     }
   }
 
-  const onUnlinkAccount = async (provider: Provider) => {
-    const response = await unlinkAccount(provider)
-    if (response.error) {
-      console.log('error unlinking account', response.error)
-      onUnlinkError && onUnlinkError(provider, response.error)
-    } else if (response.connectedAccountRecord?.provider === provider) {
-      onUnlinkSuccess && onUnlinkSuccess(provider)
-      setLinkedAccounts((prev) => ({ ...prev, [provider]: false }))
-    } else {
-      console.log('something might have gone wrong unlinking account', response)
-    }
-  }
-
-  const OnUnlinkApple = async () => {
-    await onUnlinkAccount('apple')
-  }
-  const OnUnlinkGoogle = async () => {
-    await onUnlinkAccount('google')
+  const onUnlinkAccount = (provider: Provider) => {
+    unlinkAccount(provider).then((response) => {
+      if (response.error) {
+        console.log('error unlinking account', response.error)
+        onUnlinkError && onUnlinkError(provider, response.error)
+      } else if (response.providerRecord?.provider === provider) {
+        onUnlinkSuccess && onUnlinkSuccess(provider)
+        setLinkedAccounts((prev) => ({ ...prev, [provider]: false }))
+      } else {
+        console.log(
+          'something might have gone wrong unlinking account',
+          response
+        )
+      }
+    })
   }
 
   return (
@@ -88,7 +85,9 @@ const LinkOAuth = ({
             <OAuthBtn
               provider="apple"
               action="unlink"
-              onClick={OnUnlinkApple}
+              onClick={() => {
+                onUnlinkAccount('apple')
+              }}
             />
           ) : (
             <OAuthBtn provider="apple" action="link" href={oAuthUrls.apple} />
@@ -101,7 +100,9 @@ const LinkOAuth = ({
             <OAuthBtn
               provider="google"
               action="unlink"
-              onClick={OnUnlinkGoogle}
+              onClick={() => {
+                onUnlinkAccount('google')
+              }}
             />
           ) : (
             <OAuthBtn provider="google" action="link" href={oAuthUrls.google} />

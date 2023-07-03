@@ -369,7 +369,7 @@ export class OAuthHandler<
 
   _createUnlinkAccountResponse(oAuthRecord: IConnectedAccountRecord) {
     return [
-      oAuthRecord,
+      { providerRecord: oAuthRecord },
       {},
       {
         statusCode: 200,

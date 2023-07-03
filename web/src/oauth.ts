@@ -191,7 +191,7 @@ export type FTGetOAuthUrls = (
 
 export type FTUnlinkAccount = (provider: Provider) => Promise<{
   error?: unknown
-  connectedAccountRecord?: IConnectedAccountRecord
+  providerRecord?: IConnectedAccountRecord
 }>
 
 export type FTGetConnectedAccounts = () => Promise<IConnectedAccountRecord[]>

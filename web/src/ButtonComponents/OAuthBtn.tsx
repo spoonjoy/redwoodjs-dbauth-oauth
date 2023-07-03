@@ -34,8 +34,6 @@ const OAuthBtn: React.FC<OAuthBtnProps> = ({
     unlink: 'Unlink from',
   }
 
-  const ButtonComponent = href ? 'a' : 'button'
-
   const providerName = (() => {
     switch (provider) {
       case 'apple':
@@ -47,18 +45,31 @@ const OAuthBtn: React.FC<OAuthBtnProps> = ({
     }
   })()
 
-  return (
-    <ButtonComponent
-      href={href}
-      onClick={onClick}
-      className="relative block h-[41px] w-[260px] rounded-md border border-gray-200 bg-white text-gray-900 transition-colors ease-in-out hover:bg-gray-50 hover:shadow-sm active:bg-gray-100"
-    >
+  const btnClasses =
+    'relative block h-[41px] w-[260px] rounded-md border border-gray-200 bg-white text-gray-900 transition-colors ease-in-out hover:bg-gray-50 hover:shadow-sm active:bg-gray-100'
+
+  const btnContent = (
+    <>
       <div className="absolute top-[50%] -translate-y-1/2">
         {logos[provider]}
       </div>
       <div className="absolute top-[50%] left-[50%] w-full -translate-y-1/2 -translate-x-1/2 text-center">{`${actions[action]} ${providerName}`}</div>
-    </ButtonComponent>
+    </>
   )
+
+  if (href) {
+    return (
+      <a href={href} className={btnClasses}>
+        {btnContent}
+      </a>
+    )
+  } else {
+    return (
+      <button className={btnClasses} onClick={onClick}>
+        {btnContent}
+      </button>
+    )
+  }
 }
 
 export default React.memo(OAuthBtn)
