@@ -18,7 +18,7 @@ interface IOAuthButtonsProps {
    * The layout classes to apply to the `<ul>` element.
    * Note that the default is TailwindCSS classes, but you can use any CSS classes you want.
    * If you want to use your own TailwindCSS classes, you must have TailwindCSS installed and configured.
-   * @default 'flex flex-col gap-2'
+   * @default 'flex gap-2 flex-wrap justify-center'
    */
   layoutClasses?: string
   /**
@@ -39,7 +39,7 @@ interface IOAuthButtonsProps {
 
 const OAuthButtons = ({
   action,
-  layoutClasses = 'flex flex-col gap-2',
+  layoutClasses = 'flex gap-2 flex-wrap justify-center',
   getOAuthUrls,
   linkOAuthConfig,
 }: IOAuthButtonsProps) => {
