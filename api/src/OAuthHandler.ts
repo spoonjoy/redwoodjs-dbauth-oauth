@@ -24,19 +24,21 @@ interface IConnectedAccountRecord {
 }
 
 export interface OAuthHandlerOptions {
-  /**
-   * Provide prisma db client
-   */
-  db: PrismaClient
-  /**
-   * The name of the property you'd call on `db` to access your user table.
-   * ie. if your Prisma model is named `User` this value would be `user`, as in `db.user`
-   */
-  userModelAccessor: keyof PrismaClient
-  /**
-   * Object containing cookie config options
-   */
-  cookie?: DbAuthHandlerOptions['cookie']
+  login?: {
+    errors?: {
+      userNotFound?: string
+    }
+  }
+  signup?: {
+    errors?: {
+      userExistsWithEmail?: string
+    }
+  }
+  link?: {
+    errors?: {
+      userExistsWithEmail?: string
+    }
+  }
 }
 
 interface TokenResponse {
@@ -136,11 +138,12 @@ export class OAuthHandler<
   dbUserAccessor: any
   dbOAuthAccessor: any
 
-  // below are from options
   db: PrismaClient
-  cookie: OAuthHandlerOptions['cookie']
 
-  // class constant: list of methods that are supported
+  // below are from options
+  options: OAuthHandlerOptions
+
+  /** class constant: list of methods that are supported */
   static get METHODS(): OAuthMethodNames[] {
     return [
       'linkAppleAccount',
@@ -154,8 +157,8 @@ export class OAuthHandler<
     ]
   }
 
-  // class constant: maps the functions to their required HTTP verb for access
-  static get VERBS() {
+  /** class constant: maps the functions to their required HTTP verb for access */
+  static get VERBS(): Record<OAuthMethodNames, 'GET' | 'POST' | 'DELETE'> {
     return {
       linkAppleAccount: 'GET',
       linkGoogleAccount: 'GET',
@@ -165,6 +168,59 @@ export class OAuthHandler<
       signupWithApple: 'GET',
       signupWithGoogle: 'GET',
       getConnectedAccounts: 'GET',
+    }
+  }
+
+  /** class constant: keep track of which methods return via a redirect */
+  static get REDIRECT_METHODS(): Record<OAuthMethodNames, boolean> {
+    return {
+      linkAppleAccount: true,
+      linkGoogleAccount: true,
+      unlinkAccount: false,
+      loginWithApple: true,
+      loginWithGoogle: true,
+      signupWithApple: true,
+      signupWithGoogle: true,
+      getConnectedAccounts: false,
+    }
+  }
+
+  /** class constant: error message defaults */
+  static get ERROR_MESSAGE_DEFAULTS() {
+    return {
+      // START section with errors that should never be seen by the user. If they are, it's likely a config issue.
+      params: {
+        NO_CODE_PROVIDED: 'No code parameter was provided',
+        NO_STATE_PROVIDED: 'No state parameter was provided',
+        NO_PROVIDER_PROVIDED: 'No provider parameter was provided',
+      },
+
+      unauthenticated: {
+        NOT_LOGGED_IN: 'You must be logged in to perform this action.',
+      },
+      // END section with errors that should never be seen by the user.
+
+      // START section with errors that should be configured as part of the DBAuthHandler setup, but we need defaults
+      dbAuthHandlerErrors: {
+        LOGIN_FLOW_NOT_ENABLED: 'Login flow is not enabled',
+      },
+      // END section with errors that should be configured as part of the DBAuthHandler setup
+
+      // The remainder are errors that are likely to be seen by the user, and should be configured as part of the OAuthHandler setup
+      login: {
+        USER_NOT_FOUND:
+          'No user found for this provider. Did you mean to sign up?',
+      },
+
+      signup: {
+        USER_EXISTS_WITH_EMAIL:
+          'There is already an account using this email. Did you mean to log in?',
+      },
+
+      link: {
+        USER_EXISTS_WITH_EMAIL:
+          'There is already an account linked to the email used for this provider.',
+      },
     }
   }
 
@@ -195,9 +251,10 @@ export class OAuthHandler<
     this.event = event
     this.context = context
     this.dbAuthHandlerInstance = dbAuthHandlerInstance
+    this.options = options
 
-    this.db = options.db
-    this.dbUserAccessor = this.db[options.userModelAccessor]
+    this.db = dbAuthHandlerInstance.db
+    this.dbUserAccessor = dbAuthHandlerInstance.dbAccessor
     this.dbOAuthAccessor = this.db['oAuth']
 
     this.params = this.dbAuthHandlerInstance._parseBody()
@@ -207,18 +264,25 @@ export class OAuthHandler<
     const code = this.params.code || this.event.queryStringParameters?.code
 
     if (!code || String(code).trim() === '') {
-      throw new Error('No code provided')
+      throw new Error(
+        OAuthHandler.ERROR_MESSAGE_DEFAULTS.params.NO_CODE_PROVIDED
+      )
     }
 
     return code
   }
 
-  _getStateParam() {
+  _getStateParam(required = false) {
     const state = this.params.state || this.event.queryStringParameters?.state
 
     if (!state || String(state).trim() === '') {
-      console.log('No state provided')
-      return null
+      if (required) {
+        throw new Error(
+          OAuthHandler.ERROR_MESSAGE_DEFAULTS.params.NO_STATE_PROVIDED
+        )
+      } else {
+        return null
+      }
     }
 
     return state
@@ -228,7 +292,9 @@ export class OAuthHandler<
     const provider = this.params.provider
 
     if (!provider || String(provider).trim() === '') {
-      throw new Error('No provider provided')
+      throw new Error(
+        OAuthHandler.ERROR_MESSAGE_DEFAULTS.params.NO_PROVIDER_PROVIDED
+      )
     }
 
     return provider
@@ -341,6 +407,16 @@ export class OAuthHandler<
         statusCode: 303,
       },
     ]
+  }
+
+  _redirectToSiteWithError(errorMessage: string) {
+    return this._redirectToSite(
+      {},
+      {},
+      {
+        oAuthError: errorMessage,
+      }
+    )
   }
 
   _linkAccountResponse(oAuthRecord: IConnectedAccountRecord) {
@@ -507,7 +583,7 @@ export class OAuthHandler<
       }
     }
     if (!newUser) {
-      throw new Error('Unable to create new user')
+      return this._redirectToSiteWithError('Error creating user')
     }
 
     // this is normally used just to link account to the user, but we want to log the user in
@@ -537,7 +613,10 @@ export class OAuthHandler<
 
     // if there's already a user with this email, check if it's the same as the user that's logged in - if it's not, throw an error that there's already an account using this email.
     if (maybeExistingUser && maybeExistingUser.email !== currentUser.email) {
-      throw new Error('There is already an account using this email.')
+      throw new Error(
+        this.options.link?.errors?.userExistsWithEmail ||
+          OAuthHandler.ERROR_MESSAGE_DEFAULTS.link.USER_EXISTS_WITH_EMAIL
+      )
     }
     // otherwise, link it to the current account.
     else {
@@ -547,7 +626,12 @@ export class OAuthHandler<
 
   async _loginResponse(user: Record<string, any>) {
     if (this.dbAuthHandlerInstance.options.login.enabled === false) {
-      throw new Error('Login is not enabled')
+      throw new Error(
+        (this.dbAuthHandlerInstance.options.login as any)?.errors
+          ?.flowNotEnabled ||
+          OAuthHandler.ERROR_MESSAGE_DEFAULTS.dbAuthHandlerErrors
+            .LOGIN_FLOW_NOT_ENABLED
+      )
     }
 
     // the below is straight from the DBAuthHandler's login() method
@@ -570,7 +654,10 @@ export class OAuthHandler<
     const user = await this._getUserByProviderUserId(idToken.sub)
 
     if (!user) {
-      throw new Error('No user found for this provider user id')
+      throw new Error(
+        this.options.login?.errors?.userNotFound ||
+          OAuthHandler.ERROR_MESSAGE_DEFAULTS.login.USER_NOT_FOUND
+      )
     }
 
     return this._loginResponse(user)
@@ -585,7 +672,8 @@ export class OAuthHandler<
     // if there's already a user with this email, but no user is currently logged in, throw an error that there's already an account using this email.
     if (maybeExistingUser) {
       throw new Error(
-        "There is already an account using this email. If that's you, please log in and link your account."
+        this.options.signup?.errors?.userExistsWithEmail ||
+          OAuthHandler.ERROR_MESSAGE_DEFAULTS.signup.USER_EXISTS_WITH_EMAIL
       )
     }
     // if there isn't, create a new user and link to that user.
@@ -598,7 +686,9 @@ export class OAuthHandler<
     const currentUser = await this.dbAuthHandlerInstance._getCurrentUser()
 
     if (!currentUser) {
-      throw new Error('Not logged in')
+      throw new Error(
+        OAuthHandler.ERROR_MESSAGE_DEFAULTS.unauthenticated.NOT_LOGGED_IN
+      )
     }
 
     const records = (await this.dbOAuthAccessor.findMany({
@@ -694,10 +784,15 @@ export class OAuthHandler<
       console.log('response', response)
       return response
     } catch (e: any) {
-      return this.dbAuthHandlerInstance._buildResponseWithCorsHeaders(
-        this.dbAuthHandlerInstance._badRequest(e.message || e),
-        corsHeaders
-      )
+      // if there's an error, and the method is a redirect method, redirect to the site with the error message
+      if (OAuthHandler.REDIRECT_METHODS[this._getOAuthMethod()]) {
+        return this._redirectToSiteWithError(e.message || e)
+      } else {
+        return this.dbAuthHandlerInstance._buildResponseWithCorsHeaders(
+          this.dbAuthHandlerInstance._badRequest(e.message || e),
+          corsHeaders
+        )
+      }
     }
   }
 }
