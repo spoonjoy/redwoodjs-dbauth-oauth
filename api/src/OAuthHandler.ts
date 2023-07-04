@@ -24,6 +24,12 @@ interface IConnectedAccountRecord {
 }
 
 export interface OAuthHandlerOptions {
+  /**
+   * The name of the property you'd call on `db` to access your OAuth table.
+   * ie. if your Prisma model is named `OAuth` this value would be `oAuth`, as in `db.oAuth`
+   */
+  oAuthModelAccessor: keyof PrismaClient
+
   login?: {
     errors?: {
       userNotFound?: string
@@ -255,7 +261,7 @@ export class OAuthHandler<
 
     this.db = dbAuthHandlerInstance.db
     this.dbUserAccessor = dbAuthHandlerInstance.dbAccessor
-    this.dbOAuthAccessor = this.db['oAuth']
+    this.dbOAuthAccessor = this.db[options.oAuthModelAccessor]
 
     this.params = this.dbAuthHandlerInstance._parseBody()
   }

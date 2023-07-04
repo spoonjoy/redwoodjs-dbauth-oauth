@@ -25,7 +25,7 @@
   },
   "scripts": {
     "build": "lerna run build",
-    "buildpublish": "lerna run build && lerna run yalc:publish",
+    "bp": "lerna run build && lerna run yalc:publish",
     "watch": "lerna run watch",
     "yalc:publish": "lerna run yalc:publish",
     "webadd": "yarn workspace @spoonjoy/redwoodjs-dbauth-oauth-web add",
