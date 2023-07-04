@@ -23,16 +23,20 @@ interface IGetOAuthUrlsConfig {
   method: 'link' | 'signup' | 'login'
 }
 
+export type EnabledProviders = {
+  [key in Provider]?: boolean
+}
+
 export default class OAuthClient {
-  enabledProviders: Provider[]
-  constructor(enabledProviders: Provider[]) {
+  enabledProviders: EnabledProviders
+  constructor({ enabledProviders }: { enabledProviders: EnabledProviders }) {
     this.getOAuthUrls = this.getOAuthUrls.bind(this)
     this.enabledProviders = enabledProviders
   }
   getOAuthUrls(config: IGetOAuthUrlsConfig) {
     const authUrls: Partial<{ [key in Provider]: string }> = {}
 
-    for (const provider of this.enabledProviders) {
+    for (const provider of this.getEnabledProviders()) {
       authUrls[provider] = this.getAuthUrl(config, provider)
     }
 
@@ -60,6 +64,13 @@ export default class OAuthClient {
     )
 
     return response.json()
+  }
+
+  private getEnabledProviders(): Provider[] {
+    // `as Provider[]` is necessary because Object.keys() returns a string[], but we know that the keys are actually of type Provider.
+    return (Object.keys(this.enabledProviders) as Provider[]).filter(
+      (provider) => this.enabledProviders[provider]
+    )
   }
 
   private getAuthUrl(config: IGetOAuthUrlsConfig, provider: Provider) {

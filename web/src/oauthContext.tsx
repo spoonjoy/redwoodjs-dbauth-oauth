@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react'
 
-import OAuthClient, { OAuthInstanceType, Provider } from './oauth'
+import OAuthClient, { EnabledProviders, OAuthInstanceType } from './oauth'
 import { useErrorFromRedirectHandler } from './useErrorFromRedirectHandler'
 
 function createOAuthContext() {
@@ -8,9 +8,11 @@ function createOAuthContext() {
 }
 
 export function createOAuthClient(config: {
-  enabledProviders: Provider[]
+  enabledProviders: EnabledProviders
 }): OAuthInstanceType {
-  const oAuthClient = new OAuthClient(config.enabledProviders)
+  const oAuthClient = new OAuthClient({
+    enabledProviders: config.enabledProviders,
+  })
   return {
     getOAuthUrls: oAuthClient.getOAuthUrls,
     unlinkAccount: oAuthClient.unlinkAccount,

@@ -615,6 +615,8 @@ export class OAuthHandler<
   }
 
   async _linkProviderAccount() {
+    this._verifyEnabledProvider()
+
     const idToken = await this._getTokenFromProvider()
 
     let currentUser
@@ -704,6 +706,17 @@ export class OAuthHandler<
     }
   }
 
+  _verifyEnabledProvider() {
+    const provider = this.params.provider as Provider
+
+    if (!this.options.enabledFor[provider]) {
+      throw new Error(
+        this.options.enabledFor.errors?.providerNotEnabled ||
+          OAuthHandler.ERROR_MESSAGE_DEFAULTS.enabledFor.PROVIDER_NOT_ENABLED
+      )
+    }
+  }
+
   async getConnectedAccounts() {
     const currentUser = await this.dbAuthHandlerInstance._getCurrentUser()
 
@@ -744,12 +757,6 @@ export class OAuthHandler<
 
   async linkAppleAccount() {
     this.params.provider = 'apple'
-    if (!this.options.enabledFor.apple) {
-      throw new Error(
-        this.options.enabledFor.errors?.providerNotEnabled ||
-          OAuthHandler.ERROR_MESSAGE_DEFAULTS.enabledFor.PROVIDER_NOT_ENABLED
-      )
-    }
     return this._linkProviderAccount()
   }
 
