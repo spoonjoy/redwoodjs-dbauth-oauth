@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react'
 
 import OAuthClient, { OAuthInstanceType, Provider } from './oauth'
+import { useErrorFromRedirectHandler } from './useErrorFromRedirectHandler'
 
 function createOAuthContext() {
   return React.createContext<OAuthInstanceType | undefined>(undefined)
@@ -18,9 +19,11 @@ export function createOAuthClient(config: {
 }
 
 function createUseOAuth(
-  OAuthContext: React.Context<OAuthInstanceType | undefined>
+  OAuthContext: React.Context<OAuthInstanceType | undefined>,
+  onErrorFromRedirect: (error: string) => void
 ) {
   const useOAuth = () => {
+    useErrorFromRedirectHandler(onErrorFromRedirect)
     const context = React.useContext(OAuthContext)
 
     if (!context) {
@@ -52,13 +55,20 @@ function createOAuthProvider(
   return OAuthProvider
 }
 
-export function createOAuth(oAuthClient: OAuthInstanceType): {
+export function createOAuth(
+  /**
+   * @param {OAuthInstanceType} oAuthClient - An instance of the OAuthClient, created with createOAuthClient
+   * @param {(error: string) => void} onErrorFromRedirect - A callback function that will be called with the error message if the user is redirected back to the app with an error
+   */
+  oAuthClient: OAuthInstanceType,
+  onErrorFromRedirect: (error: string) => void
+): {
   OAuthContext: React.Context<OAuthInstanceType | undefined>
   OAuthProvider: React.FC<OAuthProviderProps>
   useOAuth: () => OAuthInstanceType
 } {
   const OAuthContext = createOAuthContext()
-  const useOAuth = createUseOAuth(OAuthContext)
+  const useOAuth = createUseOAuth(OAuthContext, onErrorFromRedirect)
   const OAuthProvider = createOAuthProvider(OAuthContext, oAuthClient)
 
   return { OAuthContext, OAuthProvider, useOAuth }
