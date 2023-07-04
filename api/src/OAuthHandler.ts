@@ -786,7 +786,10 @@ export class OAuthHandler<
     } catch (e: any) {
       // if there's an error, and the method is a redirect method, redirect to the site with the error message
       if (OAuthHandler.REDIRECT_METHODS[this._getOAuthMethod()]) {
-        return this._redirectToSiteWithError(e.message || e)
+        const [body, headers, options] = this._redirectToSiteWithError(
+          e.message || e
+        )
+        return this.dbAuthHandlerInstance._ok(body, headers, options)
       } else {
         return this.dbAuthHandlerInstance._buildResponseWithCorsHeaders(
           this.dbAuthHandlerInstance._badRequest(e.message || e),
