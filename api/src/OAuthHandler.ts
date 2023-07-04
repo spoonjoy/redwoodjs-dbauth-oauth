@@ -23,12 +23,23 @@ interface IConnectedAccountRecord {
   createdAt: Date
 }
 
+type ProviderMap = {
+  [key in Provider]?: boolean
+}
+type EnabledForConfig = ProviderMap & {
+  errors?: {
+    providerNotEnabled?: string
+  }
+}
+
 export interface OAuthHandlerOptions {
   /**
    * The name of the property you'd call on `db` to access your OAuth table.
    * ie. if your Prisma model is named `OAuth` this value would be `oAuth`, as in `db.oAuth`
    */
   oAuthModelAccessor: keyof PrismaClient
+
+  enabledFor: EnabledForConfig
 
   login?: {
     errors?: {
@@ -204,6 +215,7 @@ export class OAuthHandler<
       unauthenticated: {
         NOT_LOGGED_IN: 'You must be logged in to perform this action.',
       },
+
       // END section with errors that should never be seen by the user.
 
       // START section with errors that should be configured as part of the DBAuthHandler setup, but we need defaults
@@ -226,6 +238,10 @@ export class OAuthHandler<
       link: {
         USER_EXISTS_WITH_EMAIL:
           'There is already an account linked to the email used for this provider.',
+      },
+
+      enabledFor: {
+        PROVIDER_NOT_ENABLED: 'This provider is not enabled.',
       },
     }
   }
@@ -728,6 +744,12 @@ export class OAuthHandler<
 
   async linkAppleAccount() {
     this.params.provider = 'apple'
+    if (!this.options.enabledFor.apple) {
+      throw new Error(
+        this.options.enabledFor.errors?.providerNotEnabled ||
+          OAuthHandler.ERROR_MESSAGE_DEFAULTS.enabledFor.PROVIDER_NOT_ENABLED
+      )
+    }
     return this._linkProviderAccount()
   }
 
