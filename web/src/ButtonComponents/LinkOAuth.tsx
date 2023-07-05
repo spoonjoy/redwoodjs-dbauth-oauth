@@ -99,6 +99,21 @@ const LinkOAuth = ({
           )}
         </li>
       )}
+      {oAuthUrls.github && (
+        <li>
+          {linkedAccounts.github ? (
+            <OAuthBtn
+              provider="github"
+              action="unlink"
+              onClick={() => {
+                onUnlinkAccount('github')
+              }}
+            />
+          ) : (
+            <OAuthBtn provider="github" action="link" href={oAuthUrls.github} />
+          )}
+        </li>
+      )}
       {oAuthUrls.google && (
         <li>
           {linkedAccounts.google ? (

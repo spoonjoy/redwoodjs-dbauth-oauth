@@ -125,6 +125,9 @@ export default class OAuthClient {
       case 'apple':
         rootUrl = 'https://appleid.apple.com/auth/authorize'
         break
+      case 'github':
+        rootUrl = 'https://github.com/login/oauth/authorize'
+        break
       case 'google':
         rootUrl = 'https://accounts.google.com/o/oauth2/v2/auth'
         break

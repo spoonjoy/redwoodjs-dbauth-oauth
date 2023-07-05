@@ -390,7 +390,10 @@ export class OAuthHandler<
       },
 
       body: new URLSearchParams(values).toString(),
-    }).then((res) => res.json())
+    }).then((res) => {
+      console.log('getTokenFromProvider response: ', res)
+      return res.json()
+    })
 
     if (response.id_token) {
       const idTokenDecoded = jwt.decode(response.id_token) as DecodedIdToken
