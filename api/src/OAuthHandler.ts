@@ -1,8 +1,4 @@
-import {
-  DbAuthHandler,
-  DbAuthHandlerOptions,
-  hashPassword,
-} from '@redwoodjs/auth-dbauth-api'
+import { DbAuthHandler, hashPassword } from '@redwoodjs/auth-dbauth-api'
 import { normalizeRequest } from '@redwoodjs/api'
 import type { APIGatewayProxyEvent, Context as LambdaContext } from 'aws-lambda'
 import { PrismaClient } from '@prisma/client'
@@ -14,7 +10,7 @@ import { getRandomValues } from 'crypto'
 
 import * as OAuthError from './errors'
 
-type Provider = 'apple' | 'google'
+type Provider = 'apple' | 'github' | 'google'
 
 interface IConnectedAccountRecord {
   provider: Provider
@@ -128,11 +124,14 @@ interface DecodedIdToken {
 
 export type OAuthMethodNames =
   | 'linkAppleAccount'
+  | 'linkGitHubAccount'
   | 'linkGoogleAccount'
   | 'unlinkAccount'
   | 'loginWithApple'
+  | 'loginWithGitHub'
   | 'loginWithGoogle'
   | 'signupWithApple'
+  | 'signupWithGitHub'
   | 'signupWithGoogle'
   | 'getConnectedAccounts'
 
@@ -164,11 +163,14 @@ export class OAuthHandler<
   static get METHODS(): OAuthMethodNames[] {
     return [
       'linkAppleAccount',
+      'linkGitHubAccount',
       'linkGoogleAccount',
       'unlinkAccount',
       'loginWithApple',
+      'loginWithGitHub',
       'loginWithGoogle',
       'signupWithApple',
+      'signupWithGitHub',
       'signupWithGoogle',
       'getConnectedAccounts',
     ]
@@ -178,11 +180,14 @@ export class OAuthHandler<
   static get VERBS(): Record<OAuthMethodNames, 'GET' | 'POST' | 'DELETE'> {
     return {
       linkAppleAccount: 'GET',
+      linkGitHubAccount: 'GET',
       linkGoogleAccount: 'GET',
       unlinkAccount: 'DELETE',
       loginWithApple: 'GET',
+      loginWithGitHub: 'GET',
       loginWithGoogle: 'GET',
       signupWithApple: 'GET',
+      signupWithGitHub: 'GET',
       signupWithGoogle: 'GET',
       getConnectedAccounts: 'GET',
     }
@@ -192,11 +197,14 @@ export class OAuthHandler<
   static get REDIRECT_METHODS(): Record<OAuthMethodNames, boolean> {
     return {
       linkAppleAccount: true,
+      linkGitHubAccount: true,
       linkGoogleAccount: true,
       unlinkAccount: false,
       loginWithApple: true,
+      loginWithGitHub: true,
       loginWithGoogle: true,
       signupWithApple: true,
+      signupWithGitHub: true,
       signupWithGoogle: true,
       getConnectedAccounts: false,
     }
@@ -351,6 +359,11 @@ export class OAuthHandler<
         url = 'https://appleid.apple.com/auth/token'
         client_id = process.env.APPLE_CLIENT_ID || ''
         client_secret = this._getAppleAuthClientSecret()
+        break
+      case 'github':
+        url = 'https://github.com/login/oauth/access_token'
+        client_id = process.env.GITHUB_CLIENT_ID || ''
+        client_secret = process.env.GITHUB_CLIENT_SECRET || ''
         break
       case 'google':
         url = 'https://oauth2.googleapis.com/token'
@@ -740,6 +753,11 @@ export class OAuthHandler<
     return this._signupWithProvider()
   }
 
+  async signupWithGitHub() {
+    this.params.provider = 'github'
+    return this._signupWithProvider()
+  }
+
   async signupWithGoogle() {
     this.params.provider = 'google'
     return this._signupWithProvider()
@@ -747,6 +765,10 @@ export class OAuthHandler<
 
   async loginWithApple() {
     this.params.provider = 'apple'
+    return this._loginWithProvider()
+  }
+  async loginWithGitHub() {
+    this.params.provider = 'github'
     return this._loginWithProvider()
   }
 
@@ -757,6 +779,11 @@ export class OAuthHandler<
 
   async linkAppleAccount() {
     this.params.provider = 'apple'
+    return this._linkProviderAccount()
+  }
+
+  async linkGitHubAccount() {
+    this.params.provider = 'github'
     return this._linkProviderAccount()
   }
 

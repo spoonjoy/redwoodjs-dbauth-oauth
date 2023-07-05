@@ -1,4 +1,4 @@
-export type Provider = 'apple' | 'google'
+export type Provider = 'apple' | 'github' | 'google'
 
 export interface IConnectedAccountRecord {
   provider: Provider
@@ -84,6 +84,9 @@ export default class OAuthClient {
           case 'apple':
             authMethod = 'linkAppleAccount'
             break
+          case 'github':
+            authMethod = 'linkGitHubAccount'
+            break
           case 'google':
             authMethod = 'linkGoogleAccount'
             break
@@ -94,6 +97,9 @@ export default class OAuthClient {
           case 'apple':
             authMethod = 'signupWithApple'
             break
+          case 'github':
+            authMethod = 'signupWithGitHub'
+            break
           case 'google':
             authMethod = 'signupWithGoogle'
             break
@@ -103,6 +109,9 @@ export default class OAuthClient {
         switch (provider) {
           case 'apple':
             authMethod = 'loginWithApple'
+            break
+          case 'github':
+            authMethod = 'loginWithGitHub'
             break
           case 'google':
             authMethod = 'loginWithGoogle'
@@ -131,6 +140,14 @@ export default class OAuthClient {
         }
         client_id = process.env.APPLE_CLIENT_ID
         break
+      case 'github':
+        if (!process.env.GITHUB_CLIENT_ID) {
+          throw new Error(
+            'You must provide a GITHUB_CLIENT_ID environment variable to use GitHub OAuth.'
+          )
+        }
+        client_id = process.env.GITHUB_CLIENT_ID
+        break
       case 'google':
         if (!process.env.GOOGLE_CLIENT_ID) {
           throw new Error(
@@ -152,6 +169,9 @@ export default class OAuthClient {
         scope = ''
         // scope = 'name email'
         break
+      case 'github':
+        scope = 'read:user user:email'
+        break
       case 'google':
         scope = [
           'https://www.googleapis.com/auth/userinfo.profile',
@@ -168,6 +188,9 @@ export default class OAuthClient {
           response_mode: 'query',
           // response_mode: 'form_post',
         }
+        break
+      case 'github':
+        clientSpecificOptions = undefined
         break
       case 'google':
         clientSpecificOptions = undefined

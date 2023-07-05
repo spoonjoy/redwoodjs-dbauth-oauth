@@ -3,6 +3,7 @@ import React, { MouseEvent } from 'react'
 import { Provider } from '../oauth'
 
 import AppleLogo from './assets/logos/AppleLogo'
+import GitHubLogo from './assets/logos/GitHubLogo'
 import GoogleLogo from './assets/logos/GoogleLogo'
 
 export type Action = 'login' | 'signup' | 'link' | 'unlink'
@@ -24,6 +25,7 @@ const OAuthBtn: React.FC<OAuthBtnProps> = ({
 }) => {
   const logos = {
     apple: <AppleLogo className="ml-[0.6rem] pt-[.1rem] pb-[.1rem]" />,
+    github: <GitHubLogo className="ml-[0.6rem] pt-[.1rem] pb-[.1rem]" />,
     google: <GoogleLogo className="ml-[0.6rem] pt-[.1rem] pb-[.1rem]" />,
   }
 
