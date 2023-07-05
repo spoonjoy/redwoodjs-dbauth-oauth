@@ -16,6 +16,7 @@ interface IConnectedAccountRecord {
   provider: Provider
   providerUserId: string
   userId: string
+  username: string
   createdAt: Date
 }
 
@@ -145,10 +146,10 @@ interface IGitHubUserInfo {
 interface IUserInfo {
   /** The user's email address */
   email: string
-  /** The Unique ID for the user on this platform - used by US to identify the user's account */
+  /** The Unique ID for the user on this provider - used by US to identify the user's account */
   uid: string
-  /** The username of the user on the platform - used by the USER to identify the user's account. If not available, they probably use their email as username. */
-  platformUsername?: string
+  /** The username of the user on the provider - used by the USER to identify the user's account. */
+  providerUsername: string
 }
 
 export type OAuthMethodNames =
@@ -463,7 +464,7 @@ export class OAuthHandler<
         return {
           uid: String(body.id),
           email: body.email,
-          platformUsername: body.login,
+          providerUsername: body.login,
         }
       default:
         throw new Error(
@@ -531,13 +532,13 @@ export class OAuthHandler<
           return {
             uid: idTokenDecoded.sub,
             email: idTokenDecoded.email,
-            platformUsername: idTokenDecoded.email,
+            providerUsername: idTokenDecoded.email,
           }
         case 'google':
           return {
             uid: idTokenDecoded.sub,
             email: idTokenDecoded.email,
-            platformUsername: idTokenDecoded.email,
+            providerUsername: idTokenDecoded.email,
           }
         default:
           throw new Error(
@@ -713,7 +714,7 @@ export class OAuthHandler<
         provider: provider,
         providerUserId: userInfo.uid,
         userId: user[this.dbAuthHandlerInstance.options.authFields.id],
-        username: userInfo.platformUsername,
+        providerUsername: userInfo.providerUsername,
       },
     })) as IConnectedAccountRecord
 
