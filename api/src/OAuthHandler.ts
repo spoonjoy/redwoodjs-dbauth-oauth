@@ -699,9 +699,6 @@ export class OAuthHandler<
   }
 
   async _createUserLinkProviderAndLogIn(userInfo: IUserInfo) {
-    const generatedPass = getRandomValues(new Uint8Array(32)).toString()
-    const [hashedPassword, salt] = hashPassword(generatedPass)
-
     const usesEmailAsUsername =
       this.dbAuthHandlerInstance.options.authFields.username === 'email'
 
@@ -710,8 +707,6 @@ export class OAuthHandler<
       newUser = await this.dbUserAccessor.create({
         data: {
           email: userInfo.email,
-          hashedPassword,
-          salt,
         },
       })
     } else {
@@ -726,8 +721,6 @@ export class OAuthHandler<
             [this.dbAuthHandlerInstance.options.authFields.username]:
               newUsername,
             email: userInfo.email,
-            hashedPassword,
-            salt,
           },
         })
       } catch {
@@ -736,8 +729,6 @@ export class OAuthHandler<
           data: {
             [this.dbAuthHandlerInstance.options.authFields.username]:
               newUsername,
-            hashedPassword,
-            salt,
           },
         })
       }

@@ -11,6 +11,11 @@ const SignupWithOAuth = ({ oAuthUrls }: IOAuthBtnsProps) => {
           <OAuthBtn provider="apple" action="signup" href={oAuthUrls.apple} />
         </li>
       )}
+      {oAuthUrls?.github && (
+        <li>
+          <OAuthBtn provider="github" action="signup" href={oAuthUrls.github} />
+        </li>
+      )}
       {oAuthUrls?.google && (
         <li>
           <OAuthBtn provider="google" action="signup" href={oAuthUrls.google} />

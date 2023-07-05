@@ -11,6 +11,11 @@ const LoginWithOAuth = ({ oAuthUrls }: IOAuthBtnsProps) => {
           <OAuthBtn provider="apple" action="login" href={oAuthUrls.apple} />
         </li>
       )}
+      {oAuthUrls?.github && (
+        <li>
+          <OAuthBtn provider="github" action="login" href={oAuthUrls.github} />
+        </li>
+      )}
       {oAuthUrls?.google && (
         <li>
           <OAuthBtn provider="google" action="login" href={oAuthUrls.google} />
