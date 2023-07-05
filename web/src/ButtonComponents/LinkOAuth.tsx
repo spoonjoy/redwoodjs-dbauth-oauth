@@ -20,6 +20,7 @@ const LinkOAuth = ({
     [key in Provider]: boolean | undefined
   }>({
     google: undefined,
+    github: undefined,
     apple: undefined,
   })
 
@@ -30,11 +31,15 @@ const LinkOAuth = ({
         const hasApple = response.some(
           (connection) => connection.provider === 'apple'
         )
+        const hasGitHub = response.some(
+          (connection) => connection.provider === 'github'
+        )
         const hasGoogle = response.some(
           (connection) => connection.provider === 'google'
         )
         setLinkedAccounts({
           apple: hasApple,
+          github: hasGitHub,
           google: hasGoogle,
         })
       } catch (error) {
