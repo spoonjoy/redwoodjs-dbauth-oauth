@@ -6,21 +6,13 @@ import { IOAuthBtnsProps } from './buttonTypes'
 const LoginWithOAuth = ({ oAuthUrls }: IOAuthBtnsProps) => {
   return (
     <>
-      {oAuthUrls?.apple && (
-        <li>
-          <OAuthBtn provider="apple" action="login" href={oAuthUrls.apple} />
-        </li>
-      )}
-      {oAuthUrls?.github && (
-        <li>
-          <OAuthBtn provider="github" action="login" href={oAuthUrls.github} />
-        </li>
-      )}
-      {oAuthUrls?.google && (
-        <li>
-          <OAuthBtn provider="google" action="login" href={oAuthUrls.google} />
-        </li>
-      )}
+      {Array.from(oAuthUrls.entries()).map(([provider, url]) => {
+        return (
+          <li key={provider}>
+            <OAuthBtn provider={provider} action="login" href={url} />
+          </li>
+        )
+      })}
     </>
   )
 }

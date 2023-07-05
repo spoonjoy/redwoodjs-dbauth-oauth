@@ -1,8 +1,10 @@
 export type Provider = 'apple' | 'github' | 'google'
 
+/** This should match your Prisma model for storing the connected OAuth accounts */
 export interface IConnectedAccountRecord {
   provider: Provider
   providerUserId: string
+  providerUsername: string
   userId: string
   createdAt: Date
 }
@@ -34,10 +36,10 @@ export default class OAuthClient {
     this.enabledProviders = enabledProviders
   }
   getOAuthUrls(config: IGetOAuthUrlsConfig) {
-    const authUrls: Partial<{ [key in Provider]: string }> = {}
+    const authUrls = new Map<Provider, string>()
 
     for (const provider of this.getEnabledProviders()) {
-      authUrls[provider] = this.getAuthUrl(config, provider)
+      authUrls.set(provider, this.getAuthUrl(config, provider))
     }
 
     return authUrls
@@ -224,7 +226,7 @@ export default class OAuthClient {
 
 export type FTGetOAuthUrls = (
   config: IGetOAuthUrlsConfig
-) => Partial<Record<Provider, string>>
+) => Map<Provider, string>
 
 export type FTUnlinkAccount = (provider: Provider) => Promise<{
   error?: unknown

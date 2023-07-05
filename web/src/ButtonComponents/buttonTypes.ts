@@ -1,7 +1,12 @@
-import { FTUnlinkAccount, FTGetConnectedAccounts, Provider } from '../oauth'
+import {
+  FTUnlinkAccount,
+  FTGetConnectedAccounts,
+  Provider,
+  FTGetOAuthUrls,
+} from '../oauth'
 
 export interface IOAuthBtnsProps {
-  oAuthUrls: Partial<Record<Provider, string>>
+  oAuthUrls: ReturnType<FTGetOAuthUrls>
 }
 
 /**

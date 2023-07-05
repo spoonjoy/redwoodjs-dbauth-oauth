@@ -16,8 +16,9 @@ const LinkOAuth = ({
 }: IOAuthBtnsProps & ILinkOAuthConfig) => {
   const urlWithoutQSPs = window.location.origin + window.location.pathname
 
+  // Undefined if not linked, otherwise should be the user's username at that provider
   const [linkedAccounts, setLinkedAccounts] = React.useState<{
-    [key in Provider]: boolean | undefined
+    [key in Provider]: string | undefined
   }>({
     google: undefined,
     github: undefined,
@@ -27,21 +28,14 @@ const LinkOAuth = ({
   React.useEffect(() => {
     const fetchConnectedAccounts = async () => {
       try {
-        const response = await getConnectedAccounts()
-        const hasApple = response.some(
-          (connection) => connection.provider === 'apple'
-        )
-        const hasGitHub = response.some(
-          (connection) => connection.provider === 'github'
-        )
-        const hasGoogle = response.some(
-          (connection) => connection.provider === 'google'
-        )
-        setLinkedAccounts({
-          apple: hasApple,
-          github: hasGitHub,
-          google: hasGoogle,
+        const accounts = await getConnectedAccounts()
+        const newLinkedAccounts = { ...linkedAccounts }
+
+        accounts.forEach((account) => {
+          newLinkedAccounts[account.provider] = account.providerUsername
         })
+
+        setLinkedAccounts(newLinkedAccounts)
       } catch (error) {
         console.error('Failed to fetch connected accounts:', error)
       }
@@ -56,7 +50,7 @@ const LinkOAuth = ({
   if (linkedAccount) {
     if (
       Object.keys(linkedAccounts).includes(linkedAccount) &&
-      linkedAccounts[linkedAccount as Provider] === true
+      linkedAccounts[linkedAccount as Provider] !== undefined
     ) {
       onLinkSuccess && onLinkSuccess(linkedAccount as Provider)
       window.history.replaceState(null, '', urlWithoutQSPs)
@@ -84,51 +78,24 @@ const LinkOAuth = ({
 
   return (
     <>
-      {oAuthUrls.apple && (
-        <li>
-          {linkedAccounts.apple ? (
-            <OAuthBtn
-              provider="apple"
-              action="unlink"
-              onClick={() => {
-                onUnlinkAccount('apple')
-              }}
-            />
-          ) : (
-            <OAuthBtn provider="apple" action="link" href={oAuthUrls.apple} />
-          )}
-        </li>
-      )}
-      {oAuthUrls.github && (
-        <li>
-          {linkedAccounts.github ? (
-            <OAuthBtn
-              provider="github"
-              action="unlink"
-              onClick={() => {
-                onUnlinkAccount('github')
-              }}
-            />
-          ) : (
-            <OAuthBtn provider="github" action="link" href={oAuthUrls.github} />
-          )}
-        </li>
-      )}
-      {oAuthUrls.google && (
-        <li>
-          {linkedAccounts.google ? (
-            <OAuthBtn
-              provider="google"
-              action="unlink"
-              onClick={() => {
-                onUnlinkAccount('google')
-              }}
-            />
-          ) : (
-            <OAuthBtn provider="google" action="link" href={oAuthUrls.google} />
-          )}
-        </li>
-      )}
+      {Array.from(oAuthUrls.entries()).map(([provider, url]) => {
+        return (
+          <li key={provider}>
+            {linkedAccounts[provider] ? (
+              <OAuthBtn
+                provider={provider}
+                action="unlink"
+                onClick={() => {
+                  onUnlinkAccount(provider)
+                }}
+                unlinkUsername={linkedAccounts[provider]}
+              />
+            ) : (
+              <OAuthBtn provider={provider} action="link" href={url} />
+            )}
+          </li>
+        )
+      })}
     </>
   )
 }
