@@ -101,7 +101,7 @@ interface TokenResponse {
  * of what's needed (and common across providers, ie apple doesn't provide any
  * name information)
  * */
-interface DecodedIdToken {
+interface IDecodedIdToken {
   /** The issuer registered claim identifies the principal that issues the identity token. */
   iss: string
   /** The subject registered claim identifies the principal that’s the subject of the identity token. Because this token is for your app, the value is the unique identifier for the user. */
@@ -120,6 +120,16 @@ interface DecodedIdToken {
   name?: string
   /** The URL to the user's profile picture. Not returned by Apple. */
   picture?: string
+}
+
+/**
+ * There will generally be more than this, but this is the minimum of what's needed (and common across providers)
+ * If OIDC is being used, the content of the ID token will need to be mutated to match this interface.
+ * Otherwise, this is what's retrieved from the provider's user info endpoint.
+ */
+interface IUserInfo {
+  email: string
+  // TODO
 }
 
 export type OAuthMethodNames =
@@ -190,6 +200,24 @@ export class OAuthHandler<
       signupWithGitHub: 'GET',
       signupWithGoogle: 'GET',
       getConnectedAccounts: 'GET',
+    }
+  }
+
+  /**
+   * class constant: maps the provider names to the strategy that we should use to authenticate the user.
+   * All of these technically support OAuth2 (as OIDC is built on OAuth2), so in this context supporting it means that they have
+   * an endpoint that we can use to get the user's profile information.
+   * Additionally, supporting OpenID Connect means that they have an endpoint that we can use to get
+   * the user's Identity Token, which is a JWT that contains information about the user.
+   */
+  static get PROFILE_INFO_STRATEGY(): Record<Provider, 'oauth2' | 'oidc'> {
+    return {
+      // only supports oidc
+      apple: 'oidc',
+      // supports both oauth2 and oidc
+      google: 'oidc',
+      // only supports oauth2
+      github: 'oauth2',
     }
   }
 
@@ -331,10 +359,10 @@ export class OAuthHandler<
   }
 
   /**
-   *  Verifies a decoded ID token
+   *  Verifies a decoded OpenID Connect ID token
    *  @returns the decoded token if it's valid, otherwise throws an error
    * */
-  _verifyIdToken(token: DecodedIdToken): DecodedIdToken {
+  _verifyIdToken(token: IDecodedIdToken): IDecodedIdToken {
     /**
      * TODO: To verify the identity token, your app server must:
      * - Verify the JWS E256 signature using the server’s public key
@@ -346,7 +374,62 @@ export class OAuthHandler<
     return token
   }
 
-  async _getTokenFromProvider(): Promise<DecodedIdToken> {
+  async _getUserInfoFromProviderUserEndpoint(): Promise<IUserInfo> {
+    const code = this._getCodeParam()
+    const provider = this._getProviderParam()
+
+    let access_token_url
+    let user_info_url
+    let client_id
+    let client_secret
+
+    switch (provider) {
+      case 'github':
+        access_token_url = 'https://github.com/login/oauth/access_token'
+        user_info_url = 'https://api.github.com/user'
+        client_id = process.env.GITHUB_CLIENT_ID || ''
+        client_secret = process.env.GITHUB_CLIENT_SECRET || ''
+        break
+      default:
+        throw new Error(
+          `Provider '${provider}' does not support getting user info. Did you mean to use getIDTokenFromProvider?`
+        )
+    }
+
+    const values = {
+      code,
+      client_id,
+      client_secret,
+      redirect_uri: `${
+        process.env.RWJS_API_URL
+      }/auth/oauth?method=${this._getOAuthMethod()}`, // this needs to be the exact same as the one used to get the code
+    }
+
+    const access_token = await fetch(access_token_url, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+
+      body: new URLSearchParams(values).toString(),
+    }).then(async (res) => {
+      const { access_token, scope, error } = JSON.parse(await res.text())
+      return access_token
+    })
+
+    const userInfo = await fetch('https://api.github.com/user', {
+      headers: { Authorization: `Bearer ${access_token}` },
+    })
+    const body = JSON.parse(await userInfo.text())
+
+    return body
+  }
+
+  /**
+   * For providers that support OpenID Connect, this method will verify the ID token and return the decoded token
+   */
+  async _getIdTokenFromProviderTokenEndpoint(): Promise<IDecodedIdToken> {
     const code = this._getCodeParam()
     const provider = this._getProviderParam()
 
@@ -360,18 +443,15 @@ export class OAuthHandler<
         client_id = process.env.APPLE_CLIENT_ID || ''
         client_secret = this._getAppleAuthClientSecret()
         break
-      case 'github':
-        url = 'https://github.com/login/oauth/access_token'
-        client_id = process.env.GITHUB_CLIENT_ID || ''
-        client_secret = process.env.GITHUB_CLIENT_SECRET || ''
-        break
       case 'google':
         url = 'https://oauth2.googleapis.com/token'
         client_id = process.env.GOOGLE_CLIENT_ID || ''
         client_secret = process.env.GOOGLE_CLIENT_SECRET || ''
         break
       default:
-        throw new Error(`Unknown provider: ${provider}`)
+        throw new Error(
+          `Provider '${provider}' does not support OpenID Connect`
+        )
     }
     const values = {
       code,
@@ -391,12 +471,12 @@ export class OAuthHandler<
 
       body: new URLSearchParams(values).toString(),
     }).then((res) => {
-      console.log('getTokenFromProvider response: ', res)
+      console.log('getIdTokenFromProvider response: ', res)
       return res.json()
     })
 
     if (response.id_token) {
-      const idTokenDecoded = jwt.decode(response.id_token) as DecodedIdToken
+      const idTokenDecoded = jwt.decode(response.id_token) as IDecodedIdToken
       return this._verifyIdToken(idTokenDecoded)
     } else {
       throw new Error(
@@ -560,7 +640,7 @@ export class OAuthHandler<
   }
 
   async _linkProviderToUser(
-    idToken: DecodedIdToken,
+    idToken: IDecodedIdToken,
     user: Record<string, any>
   ) {
     const provider = this._getProviderParam()
@@ -576,7 +656,7 @@ export class OAuthHandler<
     return this._linkAccountResponse(newOAuthRecord)
   }
 
-  async _createUserLinkProviderAndLogIn(idToken: DecodedIdToken) {
+  async _createUserLinkProviderAndLogIn(idToken: IDecodedIdToken) {
     const generatedPass = getRandomValues(new Uint8Array(32)).toString()
     const [hashedPassword, salt] = hashPassword(generatedPass)
 
@@ -630,10 +710,24 @@ export class OAuthHandler<
     return this._loginResponse(newUser)
   }
 
+  async _getUserInfoFromProvider(): Promise<IUserInfo> {
+    const provider = this._getProviderParam()
+
+    let decodedIdToken
+    let userInfo
+    if (OAuthHandler.PROFILE_INFO_STRATEGY[provider] === 'oidc') {
+      decodedIdToken = await this._getIdTokenFromProviderTokenEndpoint()
+    } else if (OAuthHandler.PROFILE_INFO_STRATEGY[provider] === 'oauth2') {
+      userInfo = await this._getUserInfoFromProviderUserEndpoint()
+    }
+
+    return decodedIdToken || userInfo
+  }
+
   async _linkProviderAccount() {
     this._verifyEnabledProvider()
 
-    const idToken = await this._getTokenFromProvider()
+    const userInfo = await this._getUserInfoFromProvider()
 
     let currentUser
 
