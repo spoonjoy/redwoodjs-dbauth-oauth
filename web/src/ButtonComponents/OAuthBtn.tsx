@@ -40,6 +40,8 @@ const OAuthBtn: React.FC<OAuthBtnProps> = ({
     switch (provider) {
       case 'apple':
         return 'Apple'
+      case 'github':
+        return 'GitHub'
       case 'google':
         return 'Google'
       default:
