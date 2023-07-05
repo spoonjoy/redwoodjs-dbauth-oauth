@@ -93,7 +93,6 @@ interface TokenResponse {
   iat: 1687502139,
   exp: 1687505739,
 }
-
  */
 
 /**
@@ -123,13 +122,33 @@ interface IDecodedIdToken {
 }
 
 /**
+ * Type of the response from the GitHub user info endpoint.
+ * This doesn't contain everything, but it contains everything that I believe could be useful.
+ */
+interface IGitHubUserInfo {
+  login: string
+  id: number
+  avatar_url: string
+  gravitar_id: string
+  name: string
+  email: string
+  bio: string | null
+  twitter_username: string | null
+  two_factor_authentication: boolean
+}
+
+/**
  * There will generally be more than this, but this is the minimum of what's needed (and common across providers)
  * If OIDC is being used, the content of the ID token will need to be mutated to match this interface.
  * Otherwise, this is what's retrieved from the provider's user info endpoint.
  */
 interface IUserInfo {
+  /** The user's email address */
   email: string
-  // TODO
+  /** The Unique ID for the user on this platform - used by US to identify the user's account */
+  uid: string
+  /** The username of the user on the platform - used by the USER to identify the user's account. If not available, they probably use their email as username. */
+  platformUsername?: string
 }
 
 export type OAuthMethodNames =
@@ -374,6 +393,16 @@ export class OAuthHandler<
     return token
   }
 
+  _gitHubUserInfoToUserInfo(githubUserInfo: IGitHubUserInfo): IUserInfo {
+    const { id, email, login } = githubUserInfo
+
+    return {
+      uid: String(id),
+      email,
+      platformUsername: login,
+    }
+  }
+
   async _getUserInfoFromProviderUserEndpoint(): Promise<IUserInfo> {
     const code = this._getCodeParam()
     const provider = this._getProviderParam()
@@ -412,18 +441,34 @@ export class OAuthHandler<
         'Content-Type': 'application/json',
       },
 
-      body: new URLSearchParams(values).toString(),
+      body: JSON.stringify(values),
     }).then(async (res) => {
       const { access_token, scope, error } = JSON.parse(await res.text())
+      if (error) {
+        throw new Error(error)
+      }
+
+      // this might be specific to GitHub, so probably generalize it if we add more providers
+      if (!scope.includes('user:email')) {
+        throw new Error(
+          'The user:email scope is required to get the user email from GitHub.'
+        )
+      }
+      if (!scope.includes('read:user')) {
+        throw new Error(
+          'The read:user scope is required to get the user info from GitHub.'
+        )
+      }
+
       return access_token
     })
 
-    const userInfo = await fetch('https://api.github.com/user', {
+    const userInfo = await fetch(user_info_url, {
       headers: { Authorization: `Bearer ${access_token}` },
     })
-    const body = JSON.parse(await userInfo.text())
+    const body = JSON.parse(await userInfo.text()) as IGitHubUserInfo
 
-    return body
+    return this._gitHubUserInfoToUserInfo(body)
   }
 
   /**
@@ -639,16 +684,13 @@ export class OAuthHandler<
     return null
   }
 
-  async _linkProviderToUser(
-    idToken: IDecodedIdToken,
-    user: Record<string, any>
-  ) {
+  async _linkProviderToUser(userInfo: IUserInfo, user: Record<string, any>) {
     const provider = this._getProviderParam()
 
     const newOAuthRecord = (await this.dbOAuthAccessor.create({
       data: {
         provider: provider,
-        providerUserId: idToken.sub,
+        providerUserId: userInfo.uid,
         userId: user[this.dbAuthHandlerInstance.options.authFields.id],
       },
     })) as IConnectedAccountRecord
@@ -656,7 +698,7 @@ export class OAuthHandler<
     return this._linkAccountResponse(newOAuthRecord)
   }
 
-  async _createUserLinkProviderAndLogIn(idToken: IDecodedIdToken) {
+  async _createUserLinkProviderAndLogIn(userInfo: IUserInfo) {
     const generatedPass = getRandomValues(new Uint8Array(32)).toString()
     const [hashedPassword, salt] = hashPassword(generatedPass)
 
@@ -667,7 +709,7 @@ export class OAuthHandler<
     if (usesEmailAsUsername) {
       newUser = await this.dbUserAccessor.create({
         data: {
-          email: idToken.email,
+          email: userInfo.email,
           hashedPassword,
           salt,
         },
@@ -675,7 +717,7 @@ export class OAuthHandler<
     } else {
       const username_uniquifier = md5(uuidv4())
       const newUsername =
-        idToken.email.split('@')[0] + '_' + username_uniquifier
+        userInfo.email.split('@')[0] + '_' + username_uniquifier
 
       // try to save the user's email as a field on the user model, which might not exist
       try {
@@ -683,7 +725,7 @@ export class OAuthHandler<
           data: {
             [this.dbAuthHandlerInstance.options.authFields.username]:
               newUsername,
-            email: idToken.email,
+            email: userInfo.email,
             hashedPassword,
             salt,
           },
@@ -705,7 +747,7 @@ export class OAuthHandler<
     }
 
     // this is normally used just to link account to the user, but we want to log the user in
-    await this._linkProviderToUser(idToken, newUser)
+    await this._linkProviderToUser(userInfo, newUser)
 
     return this._loginResponse(newUser)
   }
@@ -717,11 +759,14 @@ export class OAuthHandler<
     let userInfo
     if (OAuthHandler.PROFILE_INFO_STRATEGY[provider] === 'oidc') {
       decodedIdToken = await this._getIdTokenFromProviderTokenEndpoint()
+      // TODO fix this type
+      return decodedIdToken as unknown as IUserInfo
     } else if (OAuthHandler.PROFILE_INFO_STRATEGY[provider] === 'oauth2') {
       userInfo = await this._getUserInfoFromProviderUserEndpoint()
+      return userInfo
+    } else {
+      throw new Error(`No profile info strategy found for provider ${provider}`)
     }
-
-    return decodedIdToken || userInfo
   }
 
   async _linkProviderAccount() {
@@ -743,7 +788,7 @@ export class OAuthHandler<
     }
 
     // check if there is already a user with this email.
-    const maybeExistingUser = await this._getUserByEmail(idToken.email)
+    const maybeExistingUser = await this._getUserByEmail(userInfo.email)
 
     // if there's already a user with this email, check if it's the same as the user that's logged in - if it's not, throw an error that there's already an account using this email.
     if (maybeExistingUser && maybeExistingUser.email !== currentUser.email) {
@@ -754,7 +799,7 @@ export class OAuthHandler<
     }
     // otherwise, link it to the current account.
     else {
-      return await this._linkProviderToUser(idToken, currentUser)
+      return await this._linkProviderToUser(userInfo, currentUser)
     }
   }
 
@@ -784,8 +829,8 @@ export class OAuthHandler<
   }
 
   async _loginWithProvider() {
-    const idToken = await this._getTokenFromProvider()
-    const user = await this._getUserByProviderUserId(idToken.sub)
+    const userInfo = await this._getUserInfoFromProvider()
+    const user = await this._getUserByProviderUserId(userInfo.uid)
 
     if (!user) {
       throw new Error(
@@ -798,10 +843,10 @@ export class OAuthHandler<
   }
 
   async _signupWithProvider() {
-    const idToken = await this._getTokenFromProvider()
+    const userInfo = await this._getUserInfoFromProvider()
 
     // check if there is already a user with this email.
-    const maybeExistingUser = await this._getUserByEmail(idToken.email)
+    const maybeExistingUser = await this._getUserByEmail(userInfo.email)
 
     // if there's already a user with this email, but no user is currently logged in, throw an error that there's already an account using this email.
     if (maybeExistingUser) {
@@ -812,7 +857,7 @@ export class OAuthHandler<
     }
     // if there isn't, create a new user and link to that user.
     else {
-      return await this._createUserLinkProviderAndLogIn(idToken)
+      return await this._createUserLinkProviderAndLogIn(userInfo)
     }
   }
 
