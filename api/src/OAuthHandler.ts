@@ -393,16 +393,6 @@ export class OAuthHandler<
     return token
   }
 
-  _gitHubUserInfoToUserInfo(githubUserInfo: IGitHubUserInfo): IUserInfo {
-    const { id, email, login } = githubUserInfo
-
-    return {
-      uid: String(id),
-      email,
-      platformUsername: login,
-    }
-  }
-
   async _getUserInfoFromProviderUserEndpoint(): Promise<IUserInfo> {
     const code = this._getCodeParam()
     const provider = this._getProviderParam()
@@ -468,13 +458,24 @@ export class OAuthHandler<
     })
     const body = JSON.parse(await userInfo.text()) as IGitHubUserInfo
 
-    return this._gitHubUserInfoToUserInfo(body)
+    switch (provider) {
+      case 'github':
+        return {
+          uid: String(body.id),
+          email: body.email,
+          platformUsername: body.login,
+        }
+      default:
+        throw new Error(
+          `There is no transformer for the user info from provider '${provider}. Are you sure this provider is supported?`
+        )
+    }
   }
 
   /**
    * For providers that support OpenID Connect, this method will verify the ID token and return the decoded token
    */
-  async _getIdTokenFromProviderTokenEndpoint(): Promise<IDecodedIdToken> {
+  async _getUserInfoFromProviderTokenEndpoint(): Promise<IUserInfo> {
     const code = this._getCodeParam()
     const provider = this._getProviderParam()
 
@@ -521,8 +522,28 @@ export class OAuthHandler<
     })
 
     if (response.id_token) {
-      const idTokenDecoded = jwt.decode(response.id_token) as IDecodedIdToken
-      return this._verifyIdToken(idTokenDecoded)
+      const idTokenDecoded = this._verifyIdToken(
+        jwt.decode(response.id_token) as IDecodedIdToken
+      )
+
+      switch (provider) {
+        case 'apple':
+          return {
+            uid: idTokenDecoded.sub,
+            email: idTokenDecoded.email,
+            platformUsername: idTokenDecoded.email,
+          }
+        case 'google':
+          return {
+            uid: idTokenDecoded.sub,
+            email: idTokenDecoded.email,
+            platformUsername: idTokenDecoded.email,
+          }
+        default:
+          throw new Error(
+            `There is no transformer for the user info from provider '${provider}. Are you sure this provider is supported?`
+          )
+      }
     } else {
       throw new Error(
         `Unable to get ${provider} token from endpoint, got: ${JSON.stringify(
@@ -692,6 +713,7 @@ export class OAuthHandler<
         provider: provider,
         providerUserId: userInfo.uid,
         userId: user[this.dbAuthHandlerInstance.options.authFields.id],
+        username: userInfo.platformUsername,
       },
     })) as IConnectedAccountRecord
 
@@ -749,12 +771,9 @@ export class OAuthHandler<
     let decodedIdToken
     let userInfo
     if (OAuthHandler.PROFILE_INFO_STRATEGY[provider] === 'oidc') {
-      decodedIdToken = await this._getIdTokenFromProviderTokenEndpoint()
-      // TODO fix this type
-      return decodedIdToken as unknown as IUserInfo
+      return await this._getUserInfoFromProviderTokenEndpoint()
     } else if (OAuthHandler.PROFILE_INFO_STRATEGY[provider] === 'oauth2') {
-      userInfo = await this._getUserInfoFromProviderUserEndpoint()
-      return userInfo
+      return await this._getUserInfoFromProviderUserEndpoint()
     } else {
       throw new Error(`No profile info strategy found for provider ${provider}`)
     }
