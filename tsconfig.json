@@ -3,6 +3,7 @@
     "target": "ES6",
     "moduleResolution": "node",
     "declarationMap": false,
+    "declaration": true,
     "emitDeclarationOnly": false,
     "sourceMap": false,
     "composite": true,

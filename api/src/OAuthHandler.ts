@@ -1,4 +1,4 @@
-import { DbAuthHandler, hashPassword } from '@redwoodjs/auth-dbauth-api'
+import { DbAuthHandler } from '@redwoodjs/auth-dbauth-api'
 import { normalizeRequest } from '@redwoodjs/api'
 import type { APIGatewayProxyEvent, Context as LambdaContext } from 'aws-lambda'
 import { PrismaClient } from '@prisma/client'
@@ -6,28 +6,17 @@ import jwt from 'jsonwebtoken'
 
 import md5 from 'md5'
 import { v4 as uuidv4 } from 'uuid'
-import { getRandomValues } from 'crypto'
 
 import * as OAuthError from './errors'
 
-type Provider = 'apple' | 'github' | 'google'
-
-interface IConnectedAccountRecord {
-  provider: Provider
-  providerUserId: string
-  userId: string
-  username: string
-  createdAt: Date
-}
-
-type ProviderMap = {
-  [key in Provider]?: boolean
-}
-type EnabledForConfig = ProviderMap & {
-  errors?: {
-    providerNotEnabled?: string
-  }
-}
+import type {
+  Provider,
+  EnabledForConfig,
+  IDecodedIdToken,
+  IUserInfo,
+  IGitHubUserInfo,
+  IConnectedAccountRecord,
+} from './types'
 
 export interface OAuthHandlerOptions {
   /**
@@ -53,103 +42,6 @@ export interface OAuthHandlerOptions {
       userExistsWithEmail?: string
     }
   }
-}
-
-interface TokenResponse {
-  access_token: string
-  expires_in: number
-  id_token: string
-  refresh_token: string
-  scope: string
-  token_type: string
-}
-
-/**
- * {
-  iss: "https://appleid.apple.com",
-  aud: "app.spoonjoy.client",
-  exp: 1687588464,
-  iat: 1687502064,
-  sub: "001942.67cefd9e2e494fc9a4daa803dd999ac7.2122",
-  at_hash: "cbYgrWy7he1-ixPASGabog",
-  email: "ari@mendelow.me",
-  email_verified: "true",
-  auth_time: 1687502064,
-  nonce_supported: true,
-}
-
-{
-  iss: "https://accounts.google.com",
-  azp: "455236264279-qk9tju281evabb70ebfjkms9ru6m5v18.apps.googleusercontent.com",
-  aud: "455236264279-qk9tju281evabb70ebfjkms9ru6m5v18.apps.googleusercontent.com",
-  sub: "101333747228901268604",
-  email: "ari.mendehigh@gmail.com",
-  email_verified: true,
-  at_hash: "i2JjgVBN7BIk-sLG95matQ",
-  name: "Ari Mendelow",
-  picture: "https://lh3.googleusercontent.com/a/AAcHTtc6nqbgSpmrixBTrZpTbT_V5U_DsX09N8yxUV-7ow=s96-c",
-  given_name: "Ari",
-  family_name: "Mendelow",
-  locale: "en",
-  iat: 1687502139,
-  exp: 1687505739,
-}
- */
-
-/**
- * The decoded ID token will contain more than this, but this is the minimum
- * of what's needed (and common across providers, ie apple doesn't provide any
- * name information)
- * */
-interface IDecodedIdToken {
-  /** The issuer registered claim identifies the principal that issues the identity token. */
-  iss: string
-  /** The subject registered claim identifies the principal that’s the subject of the identity token. Because this token is for your app, the value is the unique identifier for the user. */
-  sub: string
-  /** The audience registered claim identifies the recipient of the identity token. Because the token is for your app, the value is the client_id from your developer account. */
-  aud: string
-  /** The issued at registered claim indicates the time that Apple issues the identity token, in the number of seconds since the Unix epoch in UTC. */
-  iat: number
-  /** The expiration time registered claim identifies the time that the identity token expires, in the number of seconds since the Unix epoch in UTC. The value must be greater than the current date and time when verifying the token. */
-  exp: number
-  /** The user's email address. For Apple, could be a proxy address, and can be empty for Work & School users. */
-  email: string
-  /** Whether the service verifies the email. */
-  email_verified: boolean
-  /** The user's full name in displayable form. Not returned by Apple. */
-  name?: string
-  /** The URL to the user's profile picture. Not returned by Apple. */
-  picture?: string
-}
-
-/**
- * Type of the response from the GitHub user info endpoint.
- * This doesn't contain everything, but it contains everything that I believe could be useful.
- */
-interface IGitHubUserInfo {
-  login: string
-  id: number
-  avatar_url: string
-  gravitar_id: string
-  name: string
-  email: string
-  bio: string | null
-  twitter_username: string | null
-  two_factor_authentication: boolean
-}
-
-/**
- * There will generally be more than this, but this is the minimum of what's needed (and common across providers)
- * If OIDC is being used, the content of the ID token will need to be mutated to match this interface.
- * Otherwise, this is what's retrieved from the provider's user info endpoint.
- */
-interface IUserInfo {
-  /** The user's email address */
-  email: string
-  /** The Unique ID for the user on this provider - used by US to identify the user's account */
-  uid: string
-  /** The username of the user on the provider - used by the USER to identify the user's account. */
-  providerUsername: string
 }
 
 export type OAuthMethodNames =
@@ -224,6 +116,26 @@ export class OAuthHandler<
   }
 
   /**
+   * class constant: keep track of which methods return via a redirect. This is especially
+   * important for error handling, as we need to know whether to return via a redirect or a JSON response.
+   */
+  static get REDIRECT_METHODS(): Record<OAuthMethodNames, boolean> {
+    return {
+      linkAppleAccount: true,
+      linkGitHubAccount: true,
+      linkGoogleAccount: true,
+      unlinkAccount: false,
+      loginWithApple: true,
+      loginWithGitHub: true,
+      loginWithGoogle: true,
+      signupWithApple: true,
+      signupWithGitHub: true,
+      signupWithGoogle: true,
+      getConnectedAccounts: false,
+    }
+  }
+
+  /**
    * class constant: maps the provider names to the strategy that we should use to authenticate the user.
    * All of these technically support OAuth2 (as OIDC is built on OAuth2), so in this context supporting it means that they have
    * an endpoint that we can use to get the user's profile information.
@@ -238,23 +150,6 @@ export class OAuthHandler<
       google: 'oidc',
       // only supports oauth2
       github: 'oauth2',
-    }
-  }
-
-  /** class constant: keep track of which methods return via a redirect */
-  static get REDIRECT_METHODS(): Record<OAuthMethodNames, boolean> {
-    return {
-      linkAppleAccount: true,
-      linkGitHubAccount: true,
-      linkGoogleAccount: true,
-      unlinkAccount: false,
-      loginWithApple: true,
-      loginWithGitHub: true,
-      loginWithGoogle: true,
-      signupWithApple: true,
-      signupWithGitHub: true,
-      signupWithGoogle: true,
-      getConnectedAccounts: false,
     }
   }
 
