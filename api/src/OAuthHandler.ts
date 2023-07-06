@@ -67,19 +67,17 @@ export class OAuthHandler<
   TUser extends Record<string | number, any>,
   TIdType = any
 > {
+  options: OAuthHandlerOptions
+
   event: APIGatewayProxyEvent
   context: LambdaContext
   dbAuthHandlerInstance: DbAuthHandler<TUser, TIdType>
 
   params: Params
 
+  db: PrismaClient
   dbUserAccessor: any
   dbOAuthAccessor: any
-
-  db: PrismaClient
-
-  // below are from options
-  options: OAuthHandlerOptions
 
   /** class constant: list of methods that are supported */
   static get METHODS(): OAuthMethodNames[] {
@@ -197,6 +195,8 @@ export class OAuthHandler<
     }
   }
 
+  /** START section on event/param parsing */
+
   // based on the one from DbAuthHandler
   _getOAuthMethod() {
     // try getting it from the query string, /.redwood/functions/auth?method=[methodName]
@@ -213,24 +213,6 @@ export class OAuthHandler<
     }
 
     return methodName
-  }
-
-  constructor(
-    event: APIGatewayProxyEvent,
-    context: LambdaContext,
-    dbAuthHandlerInstance: DbAuthHandler<TUser, TIdType>,
-    options: OAuthHandlerOptions
-  ) {
-    this.event = event
-    this.context = context
-    this.dbAuthHandlerInstance = dbAuthHandlerInstance
-    this.options = options
-
-    this.db = dbAuthHandlerInstance.db
-    this.dbUserAccessor = dbAuthHandlerInstance.dbAccessor
-    this.dbOAuthAccessor = this.db[options.oAuthModelAccessor]
-
-    this.params = this.dbAuthHandlerInstance._parseBody()
   }
 
   _getCodeParam() {
@@ -273,6 +255,29 @@ export class OAuthHandler<
     return provider
   }
 
+  /** END section on event/param parsing */
+
+  constructor(
+    event: APIGatewayProxyEvent,
+    context: LambdaContext,
+    dbAuthHandlerInstance: DbAuthHandler<TUser, TIdType>,
+    options: OAuthHandlerOptions
+  ) {
+    this.options = options
+
+    this.event = event
+    this.context = context
+    this.dbAuthHandlerInstance = dbAuthHandlerInstance
+
+    this.params = this.dbAuthHandlerInstance._parseBody()
+
+    this.db = dbAuthHandlerInstance.db
+    this.dbUserAccessor = dbAuthHandlerInstance.dbAccessor
+    this.dbOAuthAccessor = this.db[options.oAuthModelAccessor]
+  }
+
+  /** START section on validators/verifiers */
+
   /**
    *  Verifies a decoded OpenID Connect ID token
    *  @returns the decoded token if it's valid, otherwise throws an error
@@ -287,6 +292,33 @@ export class OAuthHandler<
      * - Verify that the time is earlier than the exp value of the token
      */
     return token
+  }
+
+  _verifyEnabledProvider() {
+    const provider = this.params.provider as Provider
+
+    if (!this.options.enabledFor[provider]) {
+      throw new Error(
+        this.options.enabledFor.errors?.providerNotEnabled ||
+          OAuthHandler.ERROR_MESSAGE_DEFAULTS.enabledFor.PROVIDER_NOT_ENABLED
+      )
+    }
+  }
+
+  /** END section on validators/verifiers */
+
+  /** START section on provider communication */
+
+  async _getUserInfoFromProvider(): Promise<IUserInfo> {
+    const provider = this._getProviderParam()
+
+    if (OAuthHandler.PROFILE_INFO_STRATEGY[provider] === 'oidc') {
+      return await this._getUserInfoFromProviderTokenEndpoint()
+    } else if (OAuthHandler.PROFILE_INFO_STRATEGY[provider] === 'oauth2') {
+      return await this._getUserInfoFromProviderUserEndpoint()
+    } else {
+      throw new Error(`No profile info strategy found for provider ${provider}`)
+    }
   }
 
   async _getUserInfoFromProviderUserEndpoint(): Promise<IUserInfo> {
@@ -468,6 +500,10 @@ export class OAuthHandler<
     return token
   }
 
+  /** END section on provider communication */
+
+  /** START section on request response helpers */
+
   _redirectToSite(
     body: any,
     headers: Record<string, unknown> = {},
@@ -507,6 +543,31 @@ export class OAuthHandler<
     )
   }
 
+  async _loginResponse(user: Record<string, any>) {
+    if (this.dbAuthHandlerInstance.options.login.enabled === false) {
+      throw new Error(
+        (this.dbAuthHandlerInstance.options.login as any)?.errors
+          ?.flowNotEnabled ||
+          OAuthHandler.ERROR_MESSAGE_DEFAULTS.dbAuthHandlerErrors
+            .LOGIN_FLOW_NOT_ENABLED
+      )
+    }
+
+    // the below is straight from the DBAuthHandler's login() method
+    const handlerUser = await this.dbAuthHandlerInstance.options.login.handler(
+      user as TUser
+    )
+
+    if (
+      handlerUser == null ||
+      handlerUser[this.dbAuthHandlerInstance.options.authFields.id] == null
+    ) {
+      throw new OAuthError.NoUserIdError()
+    }
+
+    return this._loginResponseWithRedirect(handlerUser)
+  }
+
   _loginResponseWithRedirect(user: Record<string, any>) {
     const sessionData = {
       id: user[this.dbAuthHandlerInstance.options.authFields.id],
@@ -544,6 +605,10 @@ export class OAuthHandler<
       },
     ]
   }
+
+  /** END section on request response helpers */
+
+  /** START section on database communication */
 
   /**
    * In case the user model records the email, either as the configured username
@@ -616,6 +681,10 @@ export class OAuthHandler<
     return this._linkAccountResponse(newOAuthRecord)
   }
 
+  /** END section on database communication */
+
+  /** START section on workload grouping */
+
   async _createUserLinkProviderAndLogIn(userInfo: IUserInfo) {
     const usesEmailAsUsername =
       this.dbAuthHandlerInstance.options.authFields.username === 'email'
@@ -661,20 +730,6 @@ export class OAuthHandler<
     return this._loginResponse(newUser)
   }
 
-  async _getUserInfoFromProvider(): Promise<IUserInfo> {
-    const provider = this._getProviderParam()
-
-    let decodedIdToken
-    let userInfo
-    if (OAuthHandler.PROFILE_INFO_STRATEGY[provider] === 'oidc') {
-      return await this._getUserInfoFromProviderTokenEndpoint()
-    } else if (OAuthHandler.PROFILE_INFO_STRATEGY[provider] === 'oauth2') {
-      return await this._getUserInfoFromProviderUserEndpoint()
-    } else {
-      throw new Error(`No profile info strategy found for provider ${provider}`)
-    }
-  }
-
   async _linkProviderAccount() {
     this._verifyEnabledProvider()
 
@@ -709,30 +764,7 @@ export class OAuthHandler<
     }
   }
 
-  async _loginResponse(user: Record<string, any>) {
-    if (this.dbAuthHandlerInstance.options.login.enabled === false) {
-      throw new Error(
-        (this.dbAuthHandlerInstance.options.login as any)?.errors
-          ?.flowNotEnabled ||
-          OAuthHandler.ERROR_MESSAGE_DEFAULTS.dbAuthHandlerErrors
-            .LOGIN_FLOW_NOT_ENABLED
-      )
-    }
-
-    // the below is straight from the DBAuthHandler's login() method
-    const handlerUser = await this.dbAuthHandlerInstance.options.login.handler(
-      user as TUser
-    )
-
-    if (
-      handlerUser == null ||
-      handlerUser[this.dbAuthHandlerInstance.options.authFields.id] == null
-    ) {
-      throw new OAuthError.NoUserIdError()
-    }
-
-    return this._loginResponseWithRedirect(handlerUser)
-  }
+  /** END  section on workload grouping */
 
   async _loginWithProvider() {
     const userInfo = await this._getUserInfoFromProvider()
@@ -765,35 +797,6 @@ export class OAuthHandler<
     else {
       return await this._createUserLinkProviderAndLogIn(userInfo)
     }
-  }
-
-  _verifyEnabledProvider() {
-    const provider = this.params.provider as Provider
-
-    if (!this.options.enabledFor[provider]) {
-      throw new Error(
-        this.options.enabledFor.errors?.providerNotEnabled ||
-          OAuthHandler.ERROR_MESSAGE_DEFAULTS.enabledFor.PROVIDER_NOT_ENABLED
-      )
-    }
-  }
-
-  async getConnectedAccounts() {
-    const currentUser = await this.dbAuthHandlerInstance._getCurrentUser()
-
-    if (!currentUser) {
-      throw new Error(
-        OAuthHandler.ERROR_MESSAGE_DEFAULTS.unauthenticated.NOT_LOGGED_IN
-      )
-    }
-
-    const records = (await this.dbOAuthAccessor.findMany({
-      where: {
-        userId: currentUser[this.dbAuthHandlerInstance.options.authFields.id],
-      },
-    })) as IConnectedAccountRecord[]
-
-    return this._createConnectedAccountsResponse(records)
   }
 
   async signupWithApple() {
@@ -855,6 +858,24 @@ export class OAuthHandler<
     })) as IConnectedAccountRecord
 
     return this._createUnlinkAccountResponse(deletedRecord)
+  }
+
+  async getConnectedAccounts() {
+    const currentUser = await this.dbAuthHandlerInstance._getCurrentUser()
+
+    if (!currentUser) {
+      throw new Error(
+        OAuthHandler.ERROR_MESSAGE_DEFAULTS.unauthenticated.NOT_LOGGED_IN
+      )
+    }
+
+    const records = (await this.dbOAuthAccessor.findMany({
+      where: {
+        userId: currentUser[this.dbAuthHandlerInstance.options.authFields.id],
+      },
+    })) as IConnectedAccountRecord[]
+
+    return this._createConnectedAccountsResponse(records)
   }
 
   async invoke() {
