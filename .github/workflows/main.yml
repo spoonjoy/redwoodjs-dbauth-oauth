@@ -26,6 +26,6 @@ jobs:
       run: yarn lerna run build --stream
 
     - name: Publish packages
-      run: yarn lerna publish from-package --yes --registry https://registry.npmjs.org/
+      run: yarn lerna publish from-package --yes
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
