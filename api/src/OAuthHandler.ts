@@ -178,7 +178,6 @@ export class OAuthHandler<
       unauthenticated: {
         notLoggedIn: 'You must be logged in to perform this action.',
       },
-
       // END section with errors that should never be seen by the user.
 
       // START section with errors that should be configured as part of the DBAuthHandler setup, but we need defaults
@@ -196,13 +195,20 @@ export class OAuthHandler<
       signup: {
         userExistsWithEmail:
           'There is already an account using this email. Did you mean to log in?',
+        userExistsFromProvider:
+          "The account you're trying to use is already signed up. Did you mean to log in?",
         alreadyLoggedIn:
           'You are already logged in. Please log out before signing up.',
+        createUserError:
+          'There was an error creating your account. Please try again.',
       },
 
       link: {
         userExistsWithEmail:
           'There is already an account linked to the email used for this provider.',
+        userExistsFromProvider:
+          "The account you're trying to link is already linked to another account.",
+        notLoggedIn: 'You must be logged in to link an account.',
       },
 
       enabledFor: {
@@ -293,10 +299,10 @@ export class OAuthHandler<
   }
 
   /** A wrapper around the one from dbAuthHandler, except it returns null instead of error if it's not logged in */
-  async _getCurrentUser(): Promise<any | null> {
+  async _getCurrentUser(): Promise<Record<string, any> | null> {
     try {
       const user = await this.dbAuthHandlerInstance._getCurrentUser()
-      return user
+      return user as Record<string, any>
     } catch (e: any) {
       if (e.name === 'NotLoggedInError') {
         return null
@@ -361,9 +367,44 @@ export class OAuthHandler<
 
     const maybeExistingUserWithProviderUid =
       await this._getUserByProviderUserId(userInfo.uid)
+    if (maybeExistingUserWithProviderUid) {
+      throw new Error(this._getErrorMessage('signup', 'userExistsFromProvider'))
+    }
+
     const maybeExistingUserWithEmail = await this._getUserByEmail(
       userInfo.email
     )
+    if (maybeExistingUserWithEmail) {
+      throw new Error(this._getErrorMessage('signup', 'userExistsWithEmail'))
+    }
+
+    return true
+  }
+
+  async _validateLink(userInfo: IUserInfo) {
+    const currentUser = await this._getCurrentUser()
+
+    if (!currentUser) {
+      throw new Error(this._getErrorMessage('link', 'notLoggedIn'))
+    }
+
+    const maybeExistingUserWithProviderUid =
+      await this._getUserByProviderUserId(userInfo.uid)
+    if (maybeExistingUserWithProviderUid) {
+      throw new Error(this._getErrorMessage('link', 'userExistsFromProvider'))
+    }
+
+    const maybeExistingUser = await this._getUserByEmail(userInfo.email)
+    // if there's already a user with this email, check if it's the same as the user that's logged in - if it's not, throw an error that there's already an account using this email.
+    if (
+      maybeExistingUser &&
+      maybeExistingUser[this.dbAuthHandlerInstance.options.authFields.id] !==
+        currentUser[this.dbAuthHandlerInstance.options.authFields.id]
+    ) {
+      throw new Error(this._getErrorMessage('link', 'userExistsWithEmail'))
+    }
+
+    return true
   }
 
   /** END section on validators/verifiers */
@@ -371,6 +412,8 @@ export class OAuthHandler<
   /** START section on provider communication */
 
   async _getUserInfoFromProvider(): Promise<IUserInfo> {
+    this._verifyEnabledProvider()
+
     const provider = this._getProviderParam()
 
     if (OAuthHandler.PROFILE_INFO_STRATEGY[provider] === 'oidc') {
@@ -747,7 +790,7 @@ export class OAuthHandler<
 
   /** START section on workload grouping */
 
-  async _createUserLinkProviderAndLogIn(userInfo: IUserInfo) {
+  async createNewUser(userInfo: IUserInfo) {
     const usesEmailAsUsername =
       this.dbAuthHandlerInstance.options.authFields.username === 'email'
 
@@ -783,9 +826,13 @@ export class OAuthHandler<
       }
     }
     if (!newUser) {
-      return this._redirectToSiteWithError('Error creating user')
+      throw new Error(this._getErrorMessage('signup', 'createUserError'))
     }
+    return newUser
+  }
 
+  async _createUserLinkProviderAndLogIn(userInfo: IUserInfo) {
+    const newUser = await this.createNewUser(userInfo)
     // this is normally used just to link account to the user, but we want to log the user in
     await this._linkProviderToUser(userInfo, newUser)
 
@@ -793,34 +840,14 @@ export class OAuthHandler<
   }
 
   async _linkProviderAccount() {
-    this._verifyEnabledProvider()
-
     const userInfo = await this._getUserInfoFromProvider()
 
-    let currentUser
+    await this._validateLink(userInfo)
 
-    // this is handled the same way as DbAuthHandler.getToken()
-    try {
-      currentUser = await this.dbAuthHandlerInstance._getCurrentUser()
-    } catch (e: any) {
-      if (e.name === 'NotLoggedInError') {
-        return this.dbAuthHandlerInstance._logoutResponse()
-      } else {
-        return this.dbAuthHandlerInstance._logoutResponse({ error: e.message })
-      }
-    }
+    const currentUser = await this._getCurrentUser()
 
-    // check if there is already a user with this email.
-    const maybeExistingUser = await this._getUserByEmail(userInfo.email)
-
-    // if there's already a user with this email, check if it's the same as the user that's logged in - if it's not, throw an error that there's already an account using this email.
-    if (maybeExistingUser && maybeExistingUser.email !== currentUser.email) {
-      throw new Error(this._getErrorMessage('link', 'userExistsWithEmail'))
-    }
-    // otherwise, link it to the current account.
-    else {
-      return await this._linkProviderToUser(userInfo, currentUser)
-    }
+    // whether current user exists should be checked in validateLink
+    return await this._linkProviderToUser(userInfo, currentUser!)
   }
 
   /** END  section on workload grouping */
@@ -839,17 +866,9 @@ export class OAuthHandler<
   async _signupWithProvider() {
     const userInfo = await this._getUserInfoFromProvider()
 
-    // check if there is already a user with this email.
-    const maybeExistingUser = await this._getUserByEmail(userInfo.email)
+    await this._validateSignup(userInfo)
 
-    // if there's already a user with this email, but no user is currently logged in, throw an error that there's already an account using this email.
-    if (maybeExistingUser) {
-      throw new Error(this._getErrorMessage('signup', 'userExistsWithEmail'))
-    }
-    // if there isn't, create a new user and link to that user.
-    else {
-      return await this._createUserLinkProviderAndLogIn(userInfo)
-    }
+    return await this._createUserLinkProviderAndLogIn(userInfo)
   }
 
   async signupWithApple() {
