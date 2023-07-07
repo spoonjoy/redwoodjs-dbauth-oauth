@@ -3,8 +3,12 @@
   "version": "0.0.2",
   "description": "> TODO: description",
   "author": "Ari Mendelow <ari@mendelow.me>",
-  "homepage": "",
-  "license": "ISC",
+  "homepage": "https://github.com/spoonjoy/redwoodjs-dbauth-oauth/tree/main/web",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spoonjoy/redwoodjs-dbauth-oauth.git"
+  },
+  "license": "MIT",
   "main": "dist/redwoodjs-dbauth-oauth-web.mjs",
   "types": "dist/index.d.ts",
   "directories": {
