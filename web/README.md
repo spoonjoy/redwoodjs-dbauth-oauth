@@ -1,11 +1,11 @@
-# `@spoonjoy/redwoodjs-dbauth-oauth-web`
+# Web Package for RedwoodJS dbAuth OAuth Plugin
 
-> TODO: description
+This is the `web` package of the RedwoodJS DBAuth OAuth Plugin. It handles the client-side logic of the OAuth process, providing a smooth user experience.
 
-## Usage
+The `web` package integrates with the `auth` provider of your RedwoodJS application, creating the `AuthProvider` component and the `useAuth` hook. It also initializes the `OAuthProvider` and `useOAuth` in the same way, allowing easy access to the auth context.
 
-```
-const redwoodjsDbauthOauthWeb = require('@spoonjoy/redwoodjs-dbauth-oauth-web');
+## Motivation
+The `web` package is designed to offer an efficient and user-friendly OAuth flow.
 
-// TODO: DEMONSTRATE API
-```
+## Setup Instructions
+Detailed setup instructions will be provided here.
