@@ -1,12 +1,6 @@
-## 
-
-## Setting up Apple
-[find your client IDs here](https://developer.apple.com/account/resources/identifiers/list/serviceId)
-
-## Setting up Google
-[find your client IDs here](https://console.cloud.google.com/apis/credentials)
-
 # RedwoodJS dbAuth OAuth Plugin
+![npm](https://img.shields.io/npm/v/%40spoonjoy%2Fredwoodjs-dbauth-oauth-api?logo=redwoodjs&label=npm%20-%20api%20side)
+![npm](https://img.shields.io/npm/v/%40spoonjoy%2Fredwoodjs-dbauth-oauth-web?logo=redwoodjs&label=npm%20-%20web%20side)
 
 This project is a plugin for RedwoodJS that adds OAuth capabilities to projects using dbAuth. It's designed to provide an easy and effective way to integrate OAuth into your RedwoodJS applications, offering a seamless experience for both developers and end users.
 
