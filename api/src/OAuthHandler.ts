@@ -44,6 +44,8 @@ export interface OAuthHandlerOptions {
   }
 }
 
+// there are defaults for each (static, non parameterized) error, but many can be overridden via options.
+// the below types are used to determine which sections and errors are available.
 type TOptionsSections = keyof OAuthHandlerOptions
 type TMaybeError = Record<string, string> | undefined
 type TMaybeErrors = { errors?: Record<string, string> } | undefined
