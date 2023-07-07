@@ -672,6 +672,27 @@ export class OAuthHandler<
 
   /** START section on request response helpers */
 
+  /**
+   * Use this as the API handler response when you don't want to throw an error.
+   * @param body the body of the response.
+   * @param headers any headers to add to the response.
+   * @param options any options to add to the response (e.g. statusCode, which defaults to 200).
+   */
+  _ok(body: string, headers = {}, options = { statusCode: 200 }) {
+    return {
+      statusCode: options.statusCode,
+      body: typeof body === 'string' ? body : JSON.stringify(body),
+      headers: { 'Content-Type': 'application/json', ...headers },
+    }
+  }
+
+  /**
+   * Use this to create the parameters to pass to _ok when you want to redirect back to the app.
+   * This is a valid response for a given method, but not for the API endpoint.
+   * @param body the body of the response.
+   * @param headers any headers to add to the response (*NOT* including `location`, which is included automatically).
+   * @param queryParams any query params to add to the redirect URL.
+   */
   _redirectToSite(
     body: any,
     headers: Record<string, unknown> = {},
@@ -693,6 +714,10 @@ export class OAuthHandler<
     ]
   }
 
+  /**
+   * Use this to create the parameters to pass to _ok when you want to redirect back to the app with an error.
+   * @param errorMessage the error message to return to the app. Will be added to the query params.
+   */
   _redirectToSiteWithError(errorMessage: string) {
     return this._redirectToSite(
       {},
@@ -703,6 +728,11 @@ export class OAuthHandler<
     )
   }
 
+  /**
+   * Use this to create the parameters to pass to _ok when you want to redirect back to the app with the newly linked account information.
+   * This is a valid response for a given method, but not for the API endpoint.
+   * @param oAuthRecord the new oAuthRecord that was created.
+   */
   _linkAccountResponse(oAuthRecord: IConnectedAccountRecord) {
     return this._redirectToSite(
       oAuthRecord,
@@ -711,6 +741,14 @@ export class OAuthHandler<
     )
   }
 
+  /**
+   * Use this to create the parameters to pass to _ok when you want to redirect back to the app
+   * and log in the user.
+   * This is a valid response for a given method, but not for the API endpoint.
+   * It's based on the DBAuthHandler's login() method, which allows a
+   * configured `login.handler` to be used. See the dbAuth docs for more info.
+   * @param user the user to log in.
+   */
   async _loginResponse(user: Record<string, any>) {
     if (this.dbAuthHandlerInstance.options.login.enabled === false) {
       // this doesn't use this._getErrorMessage because it's a DbAuthHandler error, not an OAuthHandler error
@@ -734,12 +772,8 @@ export class OAuthHandler<
       throw new OAuthError.NoUserIdError()
     }
 
-    return this._loginResponseWithRedirect(handlerUser)
-  }
-
-  _loginResponseWithRedirect(user: Record<string, any>) {
     const sessionData = {
-      id: user[this.dbAuthHandlerInstance.options.authFields.id],
+      id: handlerUser[this.dbAuthHandlerInstance.options.authFields.id],
     }
 
     const csrfToken = DbAuthHandler.CSRF_TOKEN
@@ -753,37 +787,31 @@ export class OAuthHandler<
     })
   }
 
+  /**
+   * Use this to create the parameters to pass to _ok when unlinking an account.
+   * This is a valid response for a given method, but not for the API endpoint.
+   * @param oAuthRecord the oAuthRecord that was unlinked.
+   */
   _createUnlinkAccountResponse(oAuthRecord: IConnectedAccountRecord) {
-    return [
-      { providerRecord: oAuthRecord },
-      {},
-      {
-        statusCode: 200,
-      },
-    ]
+    return [{ providerRecord: oAuthRecord }]
   }
 
+  /**
+   * Use this to create the parameters to pass to _ok when getting the list of connected accounts.
+   * This is a valid response for a given method, but not for the API endpoint.
+   * @param connectedAccountsRecords the list of connected accounts.
+   */
   _createConnectedAccountsResponse(
     connectedAccountsRecords: IConnectedAccountRecord[]
   ) {
-    return [
-      connectedAccountsRecords,
-      {},
-      {
-        statusCode: 200,
-      },
-    ]
+    return [connectedAccountsRecords]
   }
 
   /** END section on request response helpers */
 
   /** START section on database communication */
 
-  /**
-   * In case the user model records the email, either as the configured username
-   * field or as an explicit 'email' field, we need
-   * to check if the email is already claimed by another user.
-   */
+  /** Attempts to gets a user from the database by the email address. */
   async _getUserByEmail(email: string): Promise<Record<string, any> | null> {
     let maybeExistingUser
 
@@ -809,6 +837,7 @@ export class OAuthHandler<
     return maybeExistingUser
   }
 
+  /** Attempts to gets a user from the database by the provider User ID. */
   async _getUserByProviderUserId(
     providerUserId: string
   ): Promise<Record<string, any> | null> {
@@ -835,6 +864,7 @@ export class OAuthHandler<
     return null
   }
 
+  /** Creates a database record for a OAuth connection. */
   async _linkProviderToUser(userInfo: IUserInfo, user: Record<string, any>) {
     const provider = this._getProviderParam()
 
@@ -854,6 +884,13 @@ export class OAuthHandler<
 
   /** START section on workload grouping */
 
+  /**
+   * Create a new user from the given user info.
+   * If the configured username field is email, then the user's email will be used as the username.
+   * Otherwise, the username will generated as the user's email without the domain, plus a random string,
+   * and the user's email will be attempted to be saved as a field on the user model (if it exists).
+   * - TODO: allow the user to configure the username field
+   */
   async createNewUser(userInfo: IUserInfo) {
     const usesEmailAsUsername =
       this.dbAuthHandlerInstance.options.authFields.username === 'email'
@@ -895,14 +932,10 @@ export class OAuthHandler<
     return newUser
   }
 
-  async _createUserLinkProviderAndLogIn(userInfo: IUserInfo) {
-    const newUser = await this.createNewUser(userInfo)
-    // this is normally used just to link account to the user, but we want to log the user in
-    await this._linkProviderToUser(userInfo, newUser)
-
-    return this._loginResponse(newUser)
-  }
-
+  /**
+   * Once the `provider` param is set, call this to kick off the linking of a provider
+   * to an existing user.
+   */
   async _linkProviderAccount() {
     const userInfo = await this._getUserInfoFromProvider()
 
@@ -914,8 +947,9 @@ export class OAuthHandler<
     return await this._linkProviderToUser(userInfo, currentUser!)
   }
 
-  /** END  section on workload grouping */
-
+  /**
+   * Once the `provider` param is set, call this to kick off the login flow.
+   */
   async _loginWithProvider() {
     const userInfo = await this._getUserInfoFromProvider()
     const user = await this._getUserByProviderUserId(userInfo.uid)
@@ -927,13 +961,24 @@ export class OAuthHandler<
     return this._loginResponse(user)
   }
 
+  /**
+   * Once the `provider` param is set, call this to kick off the signup flow.
+   */
   async _signupWithProvider() {
     const userInfo = await this._getUserInfoFromProvider()
 
     await this._validateSignup(userInfo)
 
-    return await this._createUserLinkProviderAndLogIn(userInfo)
+    const newUser = await this.createNewUser(userInfo)
+    // this is normally used just to link account to the user, but we want to log the user in, so we don't care about the response. It'll throw an error if it fails.
+    await this._linkProviderToUser(userInfo, newUser)
+
+    return this._loginResponse(newUser)
   }
+
+  /** END section on workload grouping */
+
+  /** START section on public methods */
 
   async signupWithApple() {
     this.params.provider = 'apple'
@@ -1012,6 +1057,12 @@ export class OAuthHandler<
     return this._createConnectedAccountsResponse(records)
   }
 
+  /** END section on public methods */
+
+  /**
+   * This should be called by the API endpoint once the class has been instantiated, and handles
+   * the routing of the request to the correct method as well as the response.
+   */
   async invoke() {
     const request = normalizeRequest(this.event)
     console.log('request', request)
