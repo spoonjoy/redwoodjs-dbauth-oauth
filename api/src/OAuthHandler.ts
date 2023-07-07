@@ -25,39 +25,54 @@ export interface OAuthHandlerOptions {
    */
   oAuthModelAccessor: keyof PrismaClient
 
+  /** To enable a provider on the API side, you must include in the name of the provider with the value `true. */
   enabledFor: EnabledForConfig
 
   login?: {
+    /** Customize any error messages by including a string value here for the given key. */
     errors?: {
       userNotFound?: string
     }
   }
   signup?: {
+    /** Customize any error messages by including a string value here for the given key. */
     errors?: {
       userExistsWithEmail?: string
+      userExistsFromProvider?: string
+      alreadyLoggedIn?: string
+      createUserError?: string
     }
   }
   link?: {
+    /** Customize any error messages by including a string value here for the given key. */
     errors?: {
       userExistsWithEmail?: string
+      userExistsFromProvider?: string
+      notLoggedIn?: string
     }
   }
 }
 
 // there are defaults for each (static, non parameterized) error, but many can be overridden via options.
 // the below types are used to determine which sections and errors are available.
+/** Every configurable section. */
 type TOptionsSections = keyof OAuthHandlerOptions
+/** A type to represent a situation where an error message value might exist (for defaults). */
 type TMaybeError = Record<string, string> | undefined
+/** A type to represent a situation where an error message values might exist (for a given section in options). */
 type TMaybeErrors = { errors?: Record<string, string> } | undefined
+/** Every error section that contains default error messages. */
 type TErrorSections = keyof typeof OAuthHandler.ERROR_MESSAGE_DEFAULTS
+/** Every section that might have errors, it includes a union of sections from 'options' as well as from the list of default errors. */
 type TAllErrorSections = TOptionsSections | TErrorSections
-
+/** All error message keys - his will include *all* error message keys, and no type enforcement exists for making sure that it's for the correct section. */
 type TErrorKey = {
   [K in keyof (typeof OAuthHandler)['ERROR_MESSAGE_DEFAULTS']]: (typeof OAuthHandler)['ERROR_MESSAGE_DEFAULTS'][K] extends object
     ? keyof (typeof OAuthHandler)['ERROR_MESSAGE_DEFAULTS'][K]
     : never
 }[keyof (typeof OAuthHandler)['ERROR_MESSAGE_DEFAULTS']]
 
+/** A list of methods that this API can be called with. */
 export type OAuthMethodNames =
   | 'linkAppleAccount'
   | 'linkGitHubAccount'
@@ -71,12 +86,16 @@ export type OAuthMethodNames =
   | 'signupWithGoogle'
   | 'getConnectedAccounts'
 
+/** Type of all class-level parameters. Includes known and unknown parameters - any required params are included here. */
 type Params = {
   code?: string
+  state?: string
+  provider?: Provider
   method: OAuthMethodNames
   [key: string]: any
 }
 
+/** Class that will be created and invoked when the proper endpoint is called. All execution kicks off from the `invoke()` class function. */
 export class OAuthHandler<
   TUser extends Record<string | number, any>,
   TIdType = any
@@ -165,7 +184,7 @@ export class OAuthHandler<
     }
   }
 
-  /** class constant: error message defaults */
+  /** class constant: error message defaults. many of these can also be configured during setup, and will use these values as fallbacks. */
   static get ERROR_MESSAGE_DEFAULTS() {
     return {
       // START section with errors that should never be seen by the user. If they are, it's likely a config issue.
@@ -217,6 +236,12 @@ export class OAuthHandler<
     }
   }
 
+  /**
+   * Get the error message for a given section and error type. Will first attempt to get it from
+   * the config, and then fall back to the default value. If the default value is not found,
+   * it will throw an error.
+   * @returns The error message for the given section and error type (if found).
+   */
   _getErrorMessage(sectionKey: TAllErrorSections, errorKey: TErrorKey): string {
     // Check if the error message is configured
     let configuredMessage = (
@@ -244,7 +269,7 @@ export class OAuthHandler<
 
   /** START section on event/param parsing */
 
-  // based on the one from DbAuthHandler
+  /** Gets the requested method from the API call. */
   _getOAuthMethod() {
     // try getting it from the query string, /.redwood/functions/auth?method=[methodName]
     let methodName = this.event.queryStringParameters
@@ -262,6 +287,7 @@ export class OAuthHandler<
     return methodName
   }
 
+  /** Gets the `code` param, and throws an error if it's not found. */
   _getCodeParam() {
     const code = this.params.code || this.event.queryStringParameters?.code
 
@@ -272,6 +298,7 @@ export class OAuthHandler<
     return code
   }
 
+  /** Gets the `state` param, and throws an error if it's not found. */
   _getStateParam(required = false) {
     const state = this.params.state || this.event.queryStringParameters?.state
 
@@ -286,6 +313,7 @@ export class OAuthHandler<
     return state
   }
 
+  /** Gets the `provider` param, and throws an error if it's not found. */
   _getProviderParam(): Provider {
     const provider = this.params.provider
 
@@ -314,6 +342,12 @@ export class OAuthHandler<
 
   /** END section on event/param parsing */
 
+  /**
+   * @param event - The event object from the handler
+   * @param context - The context object from the handler
+   * @param dbAuthHandlerInstance - An instance of the DbAuthHandler class, which should be instantiated in the handler before this class (and then passed into this class)
+   * @param options - The options for the OAuthHandler
+   */
   constructor(
     event: APIGatewayProxyEvent,
     context: LambdaContext,
@@ -351,6 +385,10 @@ export class OAuthHandler<
     return token
   }
 
+  /**
+   * Verifies that the requested provider is enabled via config
+   * @returns `true` if the provider is enabled, otherwise throws an error
+   */
   _verifyEnabledProvider() {
     const provider = this.params.provider as Provider
 
@@ -359,6 +397,10 @@ export class OAuthHandler<
     }
   }
 
+  /**
+   * Verifies that the signup can proceed.
+   * @returns `true` if the signup can proceed, otherwise throws one of the `signup` errors.
+   */
   async _validateSignup(userInfo: IUserInfo) {
     const currentUser = await this._getCurrentUser()
     if (currentUser) {
@@ -381,6 +423,10 @@ export class OAuthHandler<
     return true
   }
 
+  /**
+   * Verifies that the account linking can proceed.
+   * @returns `true` if the account linking can proceed, otherwise throws one of the `link` errors.
+   */
   async _validateLink(userInfo: IUserInfo) {
     const currentUser = await this._getCurrentUser()
 
@@ -411,6 +457,10 @@ export class OAuthHandler<
 
   /** START section on provider communication */
 
+  /**
+   * Gets the user info from the provider by checking the strategy for the provider and calls the appropriate method.
+   * @returns the user info from the provider, or throws an error if the strategy is not found.
+   */
   async _getUserInfoFromProvider(): Promise<IUserInfo> {
     this._verifyEnabledProvider()
 
@@ -425,6 +475,12 @@ export class OAuthHandler<
     }
   }
 
+  /**
+   * Gets the user info from the provider by using the code to request an access token,
+   * and then using the access token to call the user info endpoint.
+   * This should never be called directly, always call `_getUserInfoFromProvider`.
+   * @returns the user info from the provider
+   */
   async _getUserInfoFromProviderUserEndpoint(): Promise<IUserInfo> {
     const code = this._getCodeParam()
     const provider = this._getProviderParam()
@@ -505,7 +561,10 @@ export class OAuthHandler<
   }
 
   /**
-   * For providers that support OpenID Connect, this method will verify the ID token and return the decoded token
+   * Gets the user info from the provider via the OpenID Connect token endpoint by
+   * using the code to request the id_token, and then decodes it to get the user info.
+   * This should never be called directly, always call `_getUserInfoFromProvider`.
+   * @returns the user info extracted from the decoded id_token.
    */
   async _getUserInfoFromProviderTokenEndpoint(): Promise<IUserInfo> {
     const code = this._getCodeParam()
@@ -585,7 +644,12 @@ export class OAuthHandler<
     }
   }
 
-  // based on https://developer.apple.com/documentation/sign_in_with_apple/generate_and_validate_tokens
+  /**
+   * Creates the client secret for Apple auth - unlike other providers, Apple doesn't just
+   * use a client secret, but requires a JWT token to be created and signed with a private key.
+   * More info here: https://developer.apple.com/documentation/sign_in_with_apple/generate_and_validate_tokens
+   * @returns the client secret for Apple auth.
+   */
   _getAppleAuthClientSecret() {
     const timeInSeconds = new Date().getTime() / 1000
     const payload = {

@@ -12,6 +12,7 @@ export type ProviderMap = {
   [key in Provider]?: boolean
 }
 export type EnabledForConfig = ProviderMap & {
+  /** Customize any error messages by including a string value here for the given key. */
   errors?: {
     providerNotEnabled?: string
   }
