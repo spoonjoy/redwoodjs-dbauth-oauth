@@ -51,6 +51,12 @@ export interface OAuthHandlerOptions {
       notLoggedIn?: string
     }
   }
+
+  unlink?: {
+    /** Customize any error messages by including a string value here for the given key. */
+    errors?: {
+      noPassword?: string
+    }
 }
 
 // there are defaults for each (static, non parameterized) error, but many can be overridden via options.
@@ -230,6 +236,10 @@ export class OAuthHandler<
         notLoggedIn: 'You must be logged in to link an account.',
       },
 
+      unlink: {
+        noPassword: 'You must have a password to have no linked accounts.',
+      },
+
       enabledFor: {
         providerNotEnabled: 'This provider is not enabled.',
       },
@@ -326,20 +336,6 @@ export class OAuthHandler<
     return provider
   }
 
-  /** A wrapper around the one from dbAuthHandler, except it returns null instead of error if it's not logged in */
-  async _getCurrentUser(): Promise<Record<string, any> | null> {
-    try {
-      const user = await this.dbAuthHandlerInstance._getCurrentUser()
-      return user as Record<string, any>
-    } catch (e: any) {
-      if (e.name === 'NotLoggedInError') {
-        return null
-      } else {
-        throw e
-      }
-    }
-  }
-
   /** END section on event/param parsing */
 
   /**
@@ -398,7 +394,7 @@ export class OAuthHandler<
   }
 
   /**
-   * Verifies that the signup can proceed.
+   * Validates that the signup can proceed.
    * @returns `true` if the signup can proceed, otherwise throws one of the `signup` errors.
    */
   async _validateSignup(userInfo: IUserInfo) {
@@ -424,7 +420,7 @@ export class OAuthHandler<
   }
 
   /**
-   * Verifies that the account linking can proceed.
+   * Validates that the account linking can proceed.
    * @returns `true` if the account linking can proceed, otherwise throws one of the `link` errors.
    */
   async _validateLink(userInfo: IUserInfo) {
@@ -451,6 +447,28 @@ export class OAuthHandler<
     }
 
     return true
+  }
+
+  async _validateUnlink() {
+    const currentUser = await this._getCurrentUser()
+
+    if (!currentUser) {
+      throw new Error(this._getErrorMessage('link', 'notLoggedIn'))
+    }
+
+    // if they have multiple providers, they can unlink
+    const records = await this._getConnectedAccountsForUser(currentUser)
+    if (records.length > 1) {
+      return true
+    }
+
+    // if they have only one provider, and they have no password, they can't unlink
+    const hasPassword = await this._getUserHasPassword(currentUser)
+    if (hasPassword) {
+      return true
+    } else {
+      throw new Error(this._getErrorMessage('unlink', 'noPassword'))
+    }
   }
 
   /** END section on validators/verifiers */
@@ -811,6 +829,41 @@ export class OAuthHandler<
 
   /** START section on database communication */
 
+  /**
+   * Wrapped aroundthe one from dbAuthHandler, except it returns null instead of
+   * error if it's not logged in.
+   */
+  async _getCurrentUser(): Promise<Record<string, any> | null> {
+    try {
+      const user = await this.dbAuthHandlerInstance._getCurrentUser()
+      return user as Record<string, any>
+    } catch (e: any) {
+      if (e.name === 'NotLoggedInError') {
+        return null
+      } else {
+        throw e
+      }
+    }
+  }
+
+  /** Gets whether the current user has a password. */
+  async _getUserHasPassword(user: Record<string, any>): Promise<boolean> {
+    const idAuthField = this.dbAuthHandlerInstance.options.authFields.id
+    const hashedPassAuthField =
+      this.dbAuthHandlerInstance.options.authFields.hashedPassword
+
+    const userWithHashedPass = await this.dbUserAccessor.findUnique({
+      where: {
+        [idAuthField]: user[idAuthField],
+      },
+      select: {
+        [hashedPassAuthField]: true,
+      },
+    })
+
+    return userWithHashedPass?.[hashedPassAuthField] ? true : false
+  }
+
   /** Attempts to gets a user from the database by the email address. */
   async _getUserByEmail(email: string): Promise<Record<string, any> | null> {
     let maybeExistingUser
@@ -878,6 +931,33 @@ export class OAuthHandler<
     })) as IConnectedAccountRecord
 
     return this._linkAccountResponse(newOAuthRecord)
+  }
+
+  /** Removes a database record for a OAuth connection. */
+  async _unlinkProviderFromUser(user: Record<string, any>) {
+    const provider = this._getProviderParam()
+
+    const deletedRecord = (await this.dbOAuthAccessor.delete({
+      where: {
+        userId_provider: {
+          userId: user[this.dbAuthHandlerInstance.options.authFields.id],
+          provider: provider,
+        },
+      },
+    })) as IConnectedAccountRecord
+
+    return deletedRecord
+  }
+
+  /** Gets the connected account records for the current user */
+  async _getConnectedAccountsForUser(user: Record<string, any>) {
+    const records = (await this.dbOAuthAccessor.findMany({
+      where: {
+        userId: user[this.dbAuthHandlerInstance.options.authFields.id],
+      },
+    })) as IConnectedAccountRecord[]
+
+    return records
   }
 
   /** END section on database communication */
@@ -1025,34 +1105,25 @@ export class OAuthHandler<
   }
 
   async unlinkAccount() {
-    const provider = this._getProviderParam()
-
-    const currentUser = await this.dbAuthHandlerInstance._getCurrentUser()
-
-    const deletedRecord = (await this.dbOAuthAccessor.delete({
-      where: {
-        userId_provider: {
-          userId: currentUser[this.dbAuthHandlerInstance.options.authFields.id],
-          provider: provider,
-        },
-      },
-    })) as IConnectedAccountRecord
-
-    return this._createUnlinkAccountResponse(deletedRecord)
-  }
-
-  async getConnectedAccounts() {
-    const currentUser = await this.dbAuthHandlerInstance._getCurrentUser()
+    const currentUser = await this._getCurrentUser()
 
     if (!currentUser) {
       throw new Error(this._getErrorMessage('unauthenticated', 'notLoggedIn'))
     }
 
-    const records = (await this.dbOAuthAccessor.findMany({
-      where: {
-        userId: currentUser[this.dbAuthHandlerInstance.options.authFields.id],
-      },
-    })) as IConnectedAccountRecord[]
+    const deletedRecord = await this._unlinkProviderFromUser(currentUser)
+
+    return this._createUnlinkAccountResponse(deletedRecord)
+  }
+
+  async getConnectedAccounts() {
+    const currentUser = await this._getCurrentUser()
+
+    if (!currentUser) {
+      throw new Error(this._getErrorMessage('unauthenticated', 'notLoggedIn'))
+    }
+
+    const records = await this._getConnectedAccountsForUser(currentUser)
 
     return this._createConnectedAccountsResponse(records)
   }
