@@ -35,6 +35,8 @@ export interface ILinkOAuthConfig {
   onUnlinkSuccess?: (unlinkedAccount: Provider) => void
   /**
    * Optional callback to run when linking fails.
+   * Because unlinking is a request from the client, rather than a redirect
+   * (like linking), the error message isn't automatically displayed.
    * @example (provider, error) => toast.error(`failed to connect ${provider}: ${error}`)
    */
   onUnlinkError?: (provider: Provider, error: unknown) => void
