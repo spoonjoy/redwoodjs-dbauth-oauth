@@ -450,13 +450,7 @@ export class OAuthHandler<
     return true
   }
 
-  async _validateUnlink() {
-    const currentUser = await this._getCurrentUser()
-
-    if (!currentUser) {
-      throw new Error(this._getErrorMessage('link', 'notLoggedIn'))
-    }
-
+  async _validateUnlink(currentUser: Record<string, any>) {
     // if they have multiple providers, they can unlink
     const records = await this._getConnectedAccountsForUser(currentUser)
     if (records.length > 1) {
@@ -1111,6 +1105,8 @@ export class OAuthHandler<
     if (!currentUser) {
       throw new Error(this._getErrorMessage('unauthenticated', 'notLoggedIn'))
     }
+
+    await this._validateUnlink(currentUser)
 
     const deletedRecord = await this._unlinkProviderFromUser(currentUser)
 
