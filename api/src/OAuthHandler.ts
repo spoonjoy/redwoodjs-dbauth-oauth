@@ -44,6 +44,18 @@ export interface OAuthHandlerOptions {
   }
 }
 
+type TOptionsSections = keyof OAuthHandlerOptions
+type TMaybeError = Record<string, string> | undefined
+type TMaybeErrors = { errors?: Record<string, string> } | undefined
+type TErrorSections = keyof typeof OAuthHandler.ERROR_MESSAGE_DEFAULTS
+type TAllErrorSections = TOptionsSections | TErrorSections
+
+type TErrorKey = {
+  [K in keyof (typeof OAuthHandler)['ERROR_MESSAGE_DEFAULTS']]: (typeof OAuthHandler)['ERROR_MESSAGE_DEFAULTS'][K] extends object
+    ? keyof (typeof OAuthHandler)['ERROR_MESSAGE_DEFAULTS'][K]
+    : never
+}[keyof (typeof OAuthHandler)['ERROR_MESSAGE_DEFAULTS']]
+
 export type OAuthMethodNames =
   | 'linkAppleAccount'
   | 'linkGitHubAccount'
@@ -156,43 +168,70 @@ export class OAuthHandler<
     return {
       // START section with errors that should never be seen by the user. If they are, it's likely a config issue.
       params: {
-        NO_CODE_PROVIDED: 'No code parameter was provided',
-        NO_STATE_PROVIDED: 'No state parameter was provided',
-        NO_PROVIDER_PROVIDED: 'No provider parameter was provided',
+        noCodeProvided: 'No code parameter was provided',
+        noStateProvided: 'No state parameter was provided',
+        noProviderProvided: 'No provider parameter was provided',
       },
 
       unauthenticated: {
-        NOT_LOGGED_IN: 'You must be logged in to perform this action.',
+        notLoggedIn: 'You must be logged in to perform this action.',
       },
 
       // END section with errors that should never be seen by the user.
 
       // START section with errors that should be configured as part of the DBAuthHandler setup, but we need defaults
       dbAuthHandlerErrors: {
-        LOGIN_FLOW_NOT_ENABLED: 'Login flow is not enabled',
+        loginFlowNotEnabled: 'Login flow is not enabled',
       },
       // END section with errors that should be configured as part of the DBAuthHandler setup
 
       // The remainder are errors that are likely to be seen by the user, and should be configured as part of the OAuthHandler setup
       login: {
-        USER_NOT_FOUND:
+        userNotFound:
           'No user found for this provider. Did you mean to sign up?',
       },
 
       signup: {
-        USER_EXISTS_WITH_EMAIL:
+        userExistsWithEmail:
           'There is already an account using this email. Did you mean to log in?',
+        alreadyLoggedIn:
+          'You are already logged in. Please log out before signing up.',
       },
 
       link: {
-        USER_EXISTS_WITH_EMAIL:
+        userExistsWithEmail:
           'There is already an account linked to the email used for this provider.',
       },
 
       enabledFor: {
-        PROVIDER_NOT_ENABLED: 'This provider is not enabled.',
+        providerNotEnabled: 'This provider is not enabled.',
       },
     }
+  }
+
+  _getErrorMessage(sectionKey: TAllErrorSections, errorKey: TErrorKey): string {
+    // Check if the error message is configured
+    let configuredMessage = (
+      this.options[sectionKey as TOptionsSections] as TMaybeErrors
+    )?.errors?.[errorKey]
+
+    // If the configured message is not found, use the default message
+    if (!configuredMessage) {
+      configuredMessage = (
+        OAuthHandler.ERROR_MESSAGE_DEFAULTS[
+          sectionKey as TErrorSections
+        ] as TMaybeError
+      )?.[errorKey]
+    }
+
+    // If the message is still not found, throw an error or return a generic message
+    if (!configuredMessage) {
+      throw new Error(
+        `No error message found for section "${sectionKey}" and error "${errorKey}"`
+      )
+    }
+
+    return configuredMessage
   }
 
   /** START section on event/param parsing */
@@ -219,9 +258,7 @@ export class OAuthHandler<
     const code = this.params.code || this.event.queryStringParameters?.code
 
     if (!code || String(code).trim() === '') {
-      throw new Error(
-        OAuthHandler.ERROR_MESSAGE_DEFAULTS.params.NO_CODE_PROVIDED
-      )
+      throw new Error(this._getErrorMessage('params', 'noCodeProvided'))
     }
 
     return code
@@ -232,9 +269,7 @@ export class OAuthHandler<
 
     if (!state || String(state).trim() === '') {
       if (required) {
-        throw new Error(
-          OAuthHandler.ERROR_MESSAGE_DEFAULTS.params.NO_STATE_PROVIDED
-        )
+        throw new Error(this._getErrorMessage('params', 'noStateProvided'))
       } else {
         return null
       }
@@ -248,11 +283,25 @@ export class OAuthHandler<
 
     if (!provider || String(provider).trim() === '') {
       throw new Error(
-        OAuthHandler.ERROR_MESSAGE_DEFAULTS.params.NO_PROVIDER_PROVIDED
+        OAuthHandler.ERROR_MESSAGE_DEFAULTS.params.noProviderProvided
       )
     }
 
     return provider
+  }
+
+  /** A wrapper around the one from dbAuthHandler, except it returns null instead of error if it's not logged in */
+  async _getCurrentUser(): Promise<any | null> {
+    try {
+      const user = await this.dbAuthHandlerInstance._getCurrentUser()
+      return user
+    } catch (e: any) {
+      if (e.name === 'NotLoggedInError') {
+        return null
+      } else {
+        throw e
+      }
+    }
   }
 
   /** END section on event/param parsing */
@@ -298,11 +347,21 @@ export class OAuthHandler<
     const provider = this.params.provider as Provider
 
     if (!this.options.enabledFor[provider]) {
-      throw new Error(
-        this.options.enabledFor.errors?.providerNotEnabled ||
-          OAuthHandler.ERROR_MESSAGE_DEFAULTS.enabledFor.PROVIDER_NOT_ENABLED
-      )
+      throw new Error(this._getErrorMessage('enabledFor', 'providerNotEnabled'))
     }
+  }
+
+  async _validateSignup(userInfo: IUserInfo) {
+    const currentUser = await this._getCurrentUser()
+    if (currentUser) {
+      throw new Error(this._getErrorMessage('signup', 'alreadyLoggedIn'))
+    }
+
+    const maybeExistingUserWithProviderUid =
+      await this._getUserByProviderUserId(userInfo.uid)
+    const maybeExistingUserWithEmail = await this._getUserByEmail(
+      userInfo.email
+    )
   }
 
   /** END section on validators/verifiers */
@@ -545,11 +604,12 @@ export class OAuthHandler<
 
   async _loginResponse(user: Record<string, any>) {
     if (this.dbAuthHandlerInstance.options.login.enabled === false) {
+      // this doesn't use this._getErrorMessage because it's a DbAuthHandler error, not an OAuthHandler error
       throw new Error(
         (this.dbAuthHandlerInstance.options.login as any)?.errors
           ?.flowNotEnabled ||
           OAuthHandler.ERROR_MESSAGE_DEFAULTS.dbAuthHandlerErrors
-            .LOGIN_FLOW_NOT_ENABLED
+            .loginFlowNotEnabled
       )
     }
 
@@ -753,10 +813,7 @@ export class OAuthHandler<
 
     // if there's already a user with this email, check if it's the same as the user that's logged in - if it's not, throw an error that there's already an account using this email.
     if (maybeExistingUser && maybeExistingUser.email !== currentUser.email) {
-      throw new Error(
-        this.options.link?.errors?.userExistsWithEmail ||
-          OAuthHandler.ERROR_MESSAGE_DEFAULTS.link.USER_EXISTS_WITH_EMAIL
-      )
+      throw new Error(this._getErrorMessage('link', 'userExistsWithEmail'))
     }
     // otherwise, link it to the current account.
     else {
@@ -771,10 +828,7 @@ export class OAuthHandler<
     const user = await this._getUserByProviderUserId(userInfo.uid)
 
     if (!user) {
-      throw new Error(
-        this.options.login?.errors?.userNotFound ||
-          OAuthHandler.ERROR_MESSAGE_DEFAULTS.login.USER_NOT_FOUND
-      )
+      throw new Error(this._getErrorMessage('login', 'userNotFound'))
     }
 
     return this._loginResponse(user)
@@ -788,10 +842,7 @@ export class OAuthHandler<
 
     // if there's already a user with this email, but no user is currently logged in, throw an error that there's already an account using this email.
     if (maybeExistingUser) {
-      throw new Error(
-        this.options.signup?.errors?.userExistsWithEmail ||
-          OAuthHandler.ERROR_MESSAGE_DEFAULTS.signup.USER_EXISTS_WITH_EMAIL
-      )
+      throw new Error(this._getErrorMessage('signup', 'userExistsWithEmail'))
     }
     // if there isn't, create a new user and link to that user.
     else {
@@ -864,9 +915,7 @@ export class OAuthHandler<
     const currentUser = await this.dbAuthHandlerInstance._getCurrentUser()
 
     if (!currentUser) {
-      throw new Error(
-        OAuthHandler.ERROR_MESSAGE_DEFAULTS.unauthenticated.NOT_LOGGED_IN
-      )
+      throw new Error(this._getErrorMessage('unauthenticated', 'notLoggedIn'))
     }
 
     const records = (await this.dbOAuthAccessor.findMany({
