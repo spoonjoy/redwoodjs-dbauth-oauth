@@ -1,0 +1,30 @@
+name: Build and Publish
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14
+
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
+
+    - name: Build packages
+      run: yarn lerna run build --stream
+
+    - name: Publish packages
+      run: yarn lerna publish from-package --yes --registry https://registry.npmjs.org/
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
