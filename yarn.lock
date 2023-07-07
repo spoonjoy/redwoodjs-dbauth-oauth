@@ -75,16 +75,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime-corejs3@npm:7.22.5":
-  version: 7.22.5
-  resolution: "@babel/runtime-corejs3@npm:7.22.5"
-  dependencies:
-    core-js-pure: ^3.30.2
-    regenerator-runtime: ^0.13.11
-  checksum: cdeabaa6858cedb0ec47c1245195a09a8fd2de06f4545614acb574d150a81d0e27eb9c08d69787b2c1ad4a1fc57919a3f0599f60d14914227c200563cd595503
-  languageName: node
-  linkType: hard
-
 "@babel/types@npm:^7.8.3":
   version: 7.22.5
   resolution: "@babel/types@npm:7.22.5"
@@ -924,27 +914,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@reach/polymorphic@npm:0.18.0":
-  version: 0.18.0
-  resolution: "@reach/polymorphic@npm:0.18.0"
-  peerDependencies:
-    react: ^16.8.0 || 17.x
-  checksum: 0d62260a55c71e0dc95f38867f24b3d699e0bb7ea2273c6fa5a1fa3d804269e2deb63a458f1f1eb7b74c32bc0add3ab31a1c2668c1dee6b2837187876d3c4cc2
-  languageName: node
-  linkType: hard
-
-"@reach/skip-nav@npm:0.18.0":
-  version: 0.18.0
-  resolution: "@reach/skip-nav@npm:0.18.0"
-  dependencies:
-    "@reach/polymorphic": 0.18.0
-  peerDependencies:
-    react: ^16.8.0 || 17.x
-    react-dom: ^16.8.0 || 17.x
-  checksum: d9d7847785e54ff6e5c9235bb4457ec36e924d90f563a2844a9bccc71b83b50e4b5718d42ab447c3d99cb364e25716a6e94b037a7a9141386f3d62d083f5859f
-  languageName: node
-  linkType: hard
-
 "@redwoodjs/api@npm:5.0.0":
   version: 5.0.0
   resolution: "@redwoodjs/api@npm:5.0.0"
@@ -986,32 +955,6 @@ __metadata:
     md5: 2.3.0
     uuid: 9.0.0
   checksum: 8ae520b867ccfac78158df62f0bd2abcd0e03b1a73f6488db62c7e7db1d43a0a26c0635acaf125d78edcb8c20d6c0b5761f11bc726eaae541c8a3d376847bfea
-  languageName: node
-  linkType: hard
-
-"@redwoodjs/auth@npm:5.4.1":
-  version: 5.4.1
-  resolution: "@redwoodjs/auth@npm:5.4.1"
-  dependencies:
-    "@babel/runtime-corejs3": 7.22.5
-    core-js: 3.31.0
-    react: 18.2.0
-  checksum: 157c8c228751c099c7c2dc210f1a9afd24f5f3575a5484e92efb2f810709f8d45b1c79558c8f018886f2846a34de152cde6095bbb1fcf5f6e2708d08729d0c05
-  languageName: node
-  linkType: hard
-
-"@redwoodjs/router@npm:^5.4.1":
-  version: 5.4.1
-  resolution: "@redwoodjs/router@npm:5.4.1"
-  dependencies:
-    "@babel/runtime-corejs3": 7.22.5
-    "@reach/skip-nav": 0.18.0
-    "@redwoodjs/auth": 5.4.1
-    core-js: 3.31.0
-  peerDependencies:
-    react: 18.2.0
-    react-dom: 18.2.0
-  checksum: 76aae3a6a2986b2422bd0cd058efcdc91b47419c1b6c5285a250628c6f0327727e64b5e20ea1d46b6ff79d36f6fac3ddc234fadb741f958373e1f04e23ee55be
   languageName: node
   linkType: hard
 
@@ -1119,16 +1062,18 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@spoonjoy/redwoodjs-dbauth-oauth-web@workspace:web"
   dependencies:
-    "@redwoodjs/router": ^5.4.1
     "@types/react": ^18.2.13
     autoprefixer: ^10.4.14
     postcss: ^8.4.24
     postcss-cli: ^10.1.0
-    react: 18.2.0
-    react-dom: 18.2.0
     tailwindcss: ^3.3.2
     vite: ^4.3.9
     vite-plugin-dts: ^3.0.2
+  peerDependencies:
+    "@redwoodjs/core": ^5.4.1
+    "@redwoodjs/router": ^5.4.1
+    react: 18.2.0
+    react-dom: 18.2.0
   languageName: unknown
   linkType: soft
 
@@ -2591,13 +2536,6 @@ __metadata:
   version: 3.30.2
   resolution: "core-js@npm:3.30.2"
   checksum: 73d47e2b9d9f502800973982d08e995bbf04832e20b04e04be31dd7607247158271315e9328788a2408190e291c7ffbefad141167b1e57dea9f983e1e723541e
-  languageName: node
-  linkType: hard
-
-"core-js@npm:3.31.0":
-  version: 3.31.0
-  resolution: "core-js@npm:3.31.0"
-  checksum: f7cf9b3010f7ca99c026d95b61743baca1a85512742ed2b67e8f65a72ac4f4fe0b90b00057783e886bdd39d3a295f42f845d33e7cba3973ed263df978343ab79
   languageName: node
   linkType: hard
 
@@ -5298,7 +5236,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"loose-envify@npm:^1.1.0, loose-envify@npm:^1.4.0":
+"loose-envify@npm:^1.4.0":
   version: 1.4.0
   resolution: "loose-envify@npm:1.4.0"
   dependencies:
@@ -6963,18 +6901,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:18.2.0":
-  version: 18.2.0
-  resolution: "react-dom@npm:18.2.0"
-  dependencies:
-    loose-envify: ^1.1.0
-    scheduler: ^0.23.0
-  peerDependencies:
-    react: ^18.2.0
-  checksum: 7d323310bea3a91be2965f9468d552f201b1c27891e45ddc2d6b8f717680c95a75ae0bc1e3f5cf41472446a2589a75aed4483aee8169287909fcd59ad149e8cc
-  languageName: node
-  linkType: hard
-
 "react-is@npm:^16.13.1":
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
@@ -6986,15 +6912,6 @@ __metadata:
   version: 18.2.0
   resolution: "react-is@npm:18.2.0"
   checksum: e72d0ba81b5922759e4aff17e0252bd29988f9642ed817f56b25a3e217e13eea8a7f2322af99a06edb779da12d5d636e9fda473d620df9a3da0df2a74141d53e
-  languageName: node
-  linkType: hard
-
-"react@npm:18.2.0":
-  version: 18.2.0
-  resolution: "react@npm:18.2.0"
-  dependencies:
-    loose-envify: ^1.1.0
-  checksum: 88e38092da8839b830cda6feef2e8505dec8ace60579e46aa5490fc3dc9bba0bd50336507dc166f43e3afc1c42939c09fe33b25fae889d6f402721dcd78fca1b
   languageName: node
   linkType: hard
 
@@ -7434,15 +7351,6 @@ __metadata:
   version: 1.2.4
   resolution: "sax@npm:1.2.4"
   checksum: d3df7d32b897a2c2f28e941f732c71ba90e27c24f62ee918bd4d9a8cfb3553f2f81e5493c7f0be94a11c1911b643a9108f231dd6f60df3fa9586b5d2e3e9e1fe
-  languageName: node
-  linkType: hard
-
-"scheduler@npm:^0.23.0":
-  version: 0.23.0
-  resolution: "scheduler@npm:0.23.0"
-  dependencies:
-    loose-envify: ^1.1.0
-  checksum: d79192eeaa12abef860c195ea45d37cbf2bbf5f66e3c4dcd16f54a7da53b17788a70d109ee3d3dde1a0fd50e6a8fc171f4300356c5aee4fc0171de526bf35f8a
   languageName: node
   linkType: hard
 
