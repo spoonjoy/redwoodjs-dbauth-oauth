@@ -57,6 +57,7 @@ export interface OAuthHandlerOptions {
     errors?: {
       noPassword?: string
     }
+  }
 }
 
 // there are defaults for each (static, non parameterized) error, but many can be overridden via options.
