@@ -1,12 +1,22 @@
 # Web Package for RedwoodJS dbAuth OAuth Plugin
 
-This is the `web` package of the RedwoodJS DBAuth OAuth Plugin. It handles the client-side logic of the OAuth process, providing a smooth user experience.
+Table of Contents:
+- [Overview](#overview)
+- [Setup Instructions](#setup-instructions)
+  - [Adding the package](#adding-the-package)
+  - [Web-side `auth` updates](#web-side-auth-updates)
+  - [`App.tsx` updates](#apptsx-updates)
+- [Usage](#usage)
+  - [Logging in and signing up](#logging-in-and-signing-up)
+  - [Linking and unlinking accounts](#linking-and-unlinking-accounts)
+
+
+## Overview 
+Welcome to the `web` package of the RedwoodJS dbAuth OAuth Plugin. It handles the client-side logic of the OAuth process, providing a smooth user experience.
 
 The `web` package integrates with the `auth` provider of your RedwoodJS application, creating the `AuthProvider` component and the `useAuth` hook. It also initializes the `OAuthProvider` and `useOAuth` in the same way, allowing easy access to the auth context.
 
-## Motivation
-The `web` package is designed to offer an efficient and user-friendly OAuth flow.
-
+Get started with the setup instructions below and take a step towards simplifying your application's authentication flow. Happy coding!
 ## Setup Instructions
 
 ### Adding the package
@@ -126,7 +136,7 @@ I just added this to my scaffolded login/signup pages, and I'm currently working
 It'll only render buttons for your enabled providers, so if you don't see any changes to your UI yet, that's probably why.
 
 ### Linking and unlinking accounts
-While linking accounts is very similar to logging in and signing up, unlinking is a bit different because there's no redirects involved.
+While linking accounts is very similar to logging in and signing up, unlinking is a bit different because there's no redirects involved. This is because to unlink an account, we don't interact with the provider at all - we just delete the record from the database.
 
 Additionally, because we want to make it clear what providers have already been linked, `useOAuth` provides two extra functions for this use case:
 - `unlinkAccount`
