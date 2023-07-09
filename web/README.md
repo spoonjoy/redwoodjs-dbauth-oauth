@@ -9,7 +9,8 @@ Table of Contents:
 - [Usage](#usage)
   - [Logging in and signing up](#logging-in-and-signing-up)
   - [Linking and unlinking accounts](#linking-and-unlinking-accounts)
-
+- [All done!](#all-done)
+- [Next steps](#next-steps)
 
 ## Overview 
 Welcome to the `web` package of the RedwoodJS dbAuth OAuth Plugin. It handles the client-side logic of the OAuth process, providing a smooth user experience.
@@ -189,3 +190,9 @@ const YourComponent = () => {
   )
 }
 ```
+
+### All done!
+And that's it! If you haven't yet set up the `api` side, go check out [those instructions](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/blob/main/api/README.md#api-package-for-redwoodjs-dbauth-oauth-plugin).
+
+### Next steps
+Now that you've set up both your `web` and `api` sides, it's time to [enable OAuth provider(s)](https://github.com/spoonjoy/redwoodjs-dbauth-oauth#enabling-oauth-provider(s))!
