@@ -88,4 +88,4 @@ switch (event.path) {
 ```
 
 ### All done!
-And that's it! If you haven't yet set up the `web` side, go check out [those instructions](../web/README.md).
+And that's it! If you haven't yet set up the `web` side, go check out [those instructions](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/blob/main/web/README.md#web-package-for-redwoodjs-dbauth-oauth-plugin).
