@@ -21,4 +21,16 @@ The project follows the dbAuth integration pattern as of Redwood version 4 and a
 For more detailed information on each package, please refer to their respective README files linked above.
 
 ## Motivation
-The motivation behind this project is to simplify the integration of OAuth into RedwoodJS projects using DBAuth. We aim to provide a straightforward and efficient solution that can be easily plugged into any project, reducing the complexity and time required for the setup.
+The motivation behind this package is to simplify the integration of OAuth into RedwoodJS projects using DBAuth. We aim to provide a straightforward and efficient solution that can be easily plugged into any project, reducing the complexity and time required to add OAuth capabilities to any RedwoodJS project.
+
+## Setup Instructions
+First, follow the instructions for [setting up the Web side](./web/README.md), and then for [setting up the API side](./api/README.md). Then, come back here.
+
+### Enabling providers
+So you've setup the Web and API sides, and now we need to enable some provider(s). Currently supported OAuth providers are:
+
+[Apple]()
+[GitHub]()
+[Google]()
+
+.....TODO add here

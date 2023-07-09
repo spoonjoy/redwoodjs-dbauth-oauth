@@ -11,7 +11,7 @@ import * as OAuthError from './errors'
 
 import type {
   Provider,
-  EnabledForConfig,
+  EnabledProvidersConfig,
   IDecodedIdToken,
   IUserInfo,
   IGitHubUserInfo,
@@ -26,7 +26,7 @@ export interface OAuthHandlerOptions {
   oAuthModelAccessor: keyof PrismaClient
 
   /** To enable a provider on the API side, you must include in the name of the provider with the value `true. */
-  enabledFor: EnabledForConfig
+  enabledProviders: EnabledProvidersConfig
 
   login?: {
     /** Customize any error messages by including a string value here for the given key. */
@@ -241,7 +241,7 @@ export class OAuthHandler<
         noPassword: 'You must have a password to have no linked accounts.',
       },
 
-      enabledFor: {
+      enabledProviders: {
         providerNotEnabled: 'This provider is not enabled.',
       },
     }
@@ -389,8 +389,10 @@ export class OAuthHandler<
   _verifyEnabledProvider() {
     const provider = this.params.provider as Provider
 
-    if (!this.options.enabledFor[provider]) {
-      throw new Error(this._getErrorMessage('enabledFor', 'providerNotEnabled'))
+    if (!this.options.enabledProviders[provider]) {
+      throw new Error(
+        this._getErrorMessage('enabledProviders', 'providerNotEnabled')
+      )
     }
   }
 
