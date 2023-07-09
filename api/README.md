@@ -1,17 +1,26 @@
 # API Package for RedwoodJS dbAuth OAuth Plugin
 
-This is the `api` package of the RedwoodJS DBAuth OAuth Plugin. It manages the server-side logic, handling the communication with the OAuth provider and the token management.
+Table of Contents:
+- [Overview](#overview)
+- [Setup Instructions](#setup-instructions)
+  - [Adding the package](#adding-the-package)
+  - [Preparing the database](#preparing-the-database)
+  - [Updating the api `auth` function](#updating-the-api-auth-function)
+- [All done!](#all-done)
+- [Next steps](#next-steps)
 
-The `api` package closely follows the DBAuth integration pattern, initializing a class called `OAuthHandler` that contains all the OAuth business logic and config parameters. It also takes in the `DbAuthHandler` instance so that it can reuse some of its functionality and configurations.
+## Overview
+Welcome to the heart of the RedwoodJS dbAuth OAuth Plugin - the `api` package. This package is engineered to handle the server-side logic of your OAuth authentication process.
 
-## Motivation
-The `api` package aims to simplify the server-side handling of the OAuth process.
+Whether you're a seasoned developer looking to streamline your OAuth integration or a beginner just getting started, this package is designed with simplicity and efficiency in mind. By closely following the dbAuth integration pattern, it initializes a class, `OAuthHandler`, that encapsulates all the OAuth business logic and configuration parameters. This package also leverages the `DbAuthHandler` instance, reusing its functionality and configurations to ensure a seamless and efficient authentication process.
+
+Get started with the setup instructions below and take a step towards simplifying your application's authentication flow. Happy coding!
 
 ## Setup Instructions
 
 ### Adding the package
 If you haven't already added the packages to your `web` and `api` workspaces, we'll start off by adding the `api` side package. From the root directory of your RedwoodJS app, run:
-`yarn workspace web add @spoonjoy/redwoodjs-dbauth-oauth-api`
+`yarn workspace api add @spoonjoy/redwoodjs-dbauth-oauth-api`
 
 ### Preparing the database
 First, we need to add the model for storing the linked OAuth provider information in the database. Go ahead and paste this wherever you like in `api/db/schema.prisma`:
@@ -55,13 +64,13 @@ That's it! Onto the next section.
 ### Updating the api `auth` function
 Navigate to `api/src/functions/auth.ts`.
 
-Your current auth function probably looks a little long, but is mostly just dbAuth config, probably with some comments explaining the options. First, we need to add the following import statement:
+Your current auth function is most likely currently just your dbAuth config. First, we need to add the following import statement:
 
 ```ts
 import { OAuthHandler } from '@spoonjoy/redwoodjs-dbauth-oauth-api'
 ```
 
-Now, ignore the rest of what's in this file, and go right to the bottom of the `handler` function. You'll see:
+Now, go right to the bottom of the `handler` function. You'll see:
 ```ts
 return await authHandler.invoke()
 ```
@@ -87,5 +96,26 @@ switch (event.path) {
 }
 ```
 
+There's a couple things happening in that snippet.
+
+First, we created a new instance of the OAuthHandler - this is a class that's responsible for managing the OAuth authentication process. When you create a new instance of OAuthHandler, you pass in several arguments:
+- `event`: This represents the incoming HTTP request. It contains information about the request, such as the URL path (event.path), HTTP method, headers, and body.
+  - This is one of the parameters to the function `handler`
+- `context`: This provides information about the runtime context in which the function is executing.
+  - This is one of the parameters to the function `handler`
+- `authHandler`: This is an instance of the DbAuthHandler class, which handles traditional authentication. The OAuthHandler uses this to reuse some of its functionality and configurations.
+  - You might have given this variable a different name
+- `config` object: This contains configuration settings for the OAuthHandler. For example, `oAuthModelAccessor` specifies the property name to access the OAuth table in the database, and `enabledProviders` specifies which OAuth providers are enabled.
+
+The `OAuthHandler` provides a method called `invoke()`, which is called every time there's an OAuth related request. It manages the communication with the OAuth provider, handles the OAuth process (like getting the authorization code, exchanging it for a token, and saving the token), and sends the appropriate response back to the client.
+
+Then, we switched the original return statement to a switch statement. This is done to handle different types of authentication requests - it checks the event.path property, which represents the URL path of the incoming HTTP request. Depending on the URL path, it will execute different code:
+- If the URL path is `/auth`, it will execute `authHandler.invoke()`. This is the original behavior, which handles traditional authentication requests.
+- If the URL path is `/auth/oauth`, it will execute `oAuthHandler.invoke()`. This is new behavior introduced to handle OAuth requests.
+In other words, the switch statement allows the application to handle both traditional and OAuth authentication requests, routing them to the appropriate handler based on the URL path.
+
 ### All done!
 And that's it! If you haven't yet set up the `web` side, go check out [those instructions](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/blob/main/web/README.md#web-package-for-redwoodjs-dbauth-oauth-plugin).
+
+### Next steps
+Now that you've set up both your `web` and `api` sides, it's time to [enable OAuth provider(s)](https://github.com/spoonjoy/redwoodjs-dbauth-oauth#enabling-oauth-provider(s))!

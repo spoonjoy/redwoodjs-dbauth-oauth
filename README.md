@@ -20,6 +20,8 @@ For more detailed information on each package, please refer to their respective 
 ## Setup Instructions
 Setup involves preparing both the web and api sides of your project. First, follow the instructions for [setting up the Web side](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/blob/main/web/README.md), and then for [setting up the API side](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/tree/main/api#api-package-for-redwoodjs-dbauth-oauth-plugin).
 
+
+### Enabling OAuth Provider(s)
 After setting up both sides, you'll need to enable your chosen OAuth provider(s). Currently supported providers include:
 
 [Apple]()
