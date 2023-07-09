@@ -10,14 +10,6 @@ generator client {
 
 // Define your own datamodels here and run `yarn redwood prisma migrate dev`
 // to create migrations for them and apply to your dev DB.
-// TODO: Please remove the following example:
-model UserExample {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-}
-
-
 model Post {
   id        Int      @id @default(autoincrement())
   title     String
@@ -30,17 +22,34 @@ model Post {
 model User {
   id                  Int       @id @default(autoincrement())
   email               String    @unique
-  hashedPassword      String
+  hashedPassword      String?
   fullName            String
-  salt                String
+  salt                String?
   resetToken          String?
   resetTokenExpiresAt DateTime?
   roles               String?
   posts               Post[]
+  OAuth               OAuth[]
+}
+
+model OAuth {
+  provider         String
+  // The ID of the user on the OAuth provider's system
+  providerUserId   String
+  // The username of the user on the OAuth provider's system. Useful for helping users identify their linked accounts
+  providerUsername String
+  user             User   @relation(fields: [userId], references: [id])
+  userId           Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([provider, providerUserId])
+  @@unique([userId, provider])
+  @@index([userId])
 }
 
 model Contact {
-  id        Int @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   name      String
   email     String
   message   String

@@ -1,6 +1,8 @@
 import { useRef } from 'react'
 import { useEffect } from 'react'
 
+import { OAuthButtons } from '@spoonjoy/redwoodjs-dbauth-oauth-web'
+
 import {
   Form,
   Label,
@@ -13,10 +15,11 @@ import { Link, navigate, routes } from '@redwoodjs/router'
 import { MetaTags } from '@redwoodjs/web'
 import { toast, Toaster } from '@redwoodjs/web/toast'
 
-import { useAuth } from 'src/auth'
+import { useAuth, useOAuth } from 'src/auth'
 
 const SignupPage = () => {
   const { isAuthenticated, signUp } = useAuth()
+  const { getOAuthUrls } = useOAuth()
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -60,6 +63,7 @@ const SignupPage = () => {
             </header>
 
             <div className="rw-segment-main">
+              <OAuthButtons action="signup" getOAuthUrls={getOAuthUrls} />
               <div className="rw-form-wrapper">
                 <Form onSubmit={onSubmit} className="rw-form-wrapper">
                   <Label
