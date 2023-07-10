@@ -62,6 +62,7 @@ In `web/src/App.tsx`, you need to add the OAuthProvider that we just exported in
 ...
 -import { AuthProvider, useAuth } from './auth'
 +import { AuthProvider, useAuth, OAuthProvider } from './auth'
++import '@spoonjoy/redwoodjs-dbauth-oauth-web/dist/style.css' // only required if you're planning on using the supplied button components
  
  import './scaffold.css'
  import './index.css'

@@ -57,6 +57,13 @@ You'll also want to add an `OAuth` relation to the `User` model, as well as its 
  }
 ```
 
+**!!Important** - it's not just the password fields that need to be optional, it's any field that isn't:
+- `id`
+- `email` (even if it's not used as username)
+- your username field
+
+**If you have any other required fields, it'll fail when trying to create a new user.**
+
 Then, run `yarn rw prisma migrate dev`, and give it a name like "prepare for OAuth".
 
 That's it! Onto the next section.
