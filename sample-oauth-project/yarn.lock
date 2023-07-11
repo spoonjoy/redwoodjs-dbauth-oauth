@@ -5825,9 +5825,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@spoonjoy/redwoodjs-dbauth-oauth-api@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "@spoonjoy/redwoodjs-dbauth-oauth-api@npm:0.1.0"
+"@spoonjoy/redwoodjs-dbauth-oauth-api@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@spoonjoy/redwoodjs-dbauth-oauth-api@npm:1.0.0"
   dependencies:
     "@prisma/client": 4.15.0
     "@redwoodjs/api": 5.0.0
@@ -5837,19 +5837,19 @@ __metadata:
     jsonwebtoken: ^9.0.0
     md5: ^2.3.0
     uuid: ^9.0.0
-  checksum: 5829f64b5b77c7f8900b1f3edd971c1e58f9153bf9f01ec0116e6a976694dab256be055eae3a035fd656fc7c5868510d002936a999d496ffba5e8d36c81ec25c
+  checksum: 8ea61f7958579fbbf5bf49894c2be7b30300ab167c8ee71a555c82e2d7c8ee5cd616a520d1cd70891e76b56e192d5cb1062830a418ca879fbf8aff070a3cb8ac
   languageName: node
   linkType: hard
 
-"@spoonjoy/redwoodjs-dbauth-oauth-web@npm:^0.0.3":
-  version: 0.0.3
-  resolution: "@spoonjoy/redwoodjs-dbauth-oauth-web@npm:0.0.3"
+"@spoonjoy/redwoodjs-dbauth-oauth-web@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@spoonjoy/redwoodjs-dbauth-oauth-web@npm:1.0.0"
   peerDependencies:
     "@redwoodjs/core": ^5.4.1
     "@redwoodjs/router": ^5.4.1
     react: 18.2.0
     react-dom: 18.2.0
-  checksum: 5793299dc6589470fa5449b5e74b94582d6df1b11433cfb625296a14fe86307e14c9df84c2b419b7fc8ce58ac73c3dd7321becc87bf941bdd0a3de2f1d314365
+  checksum: 8ed5c5ba84af8cd38a89003772f9c7af29882d87e236a3a379a201571985f573338acd2e83c3e7a21993560e6af11a126b53603d837333512a17296946026ae2
   languageName: node
   linkType: hard
 
@@ -9438,7 +9438,7 @@ __metadata:
     "@redwoodjs/api": 5.0.0
     "@redwoodjs/auth-dbauth-api": 5.0.0
     "@redwoodjs/graphql-server": 5.0.0
-    "@spoonjoy/redwoodjs-dbauth-oauth-api": ^0.1.0
+    "@spoonjoy/redwoodjs-dbauth-oauth-api": ^1.0.0
   languageName: unknown
   linkType: soft
 
@@ -26899,7 +26899,7 @@ __metadata:
     "@redwoodjs/router": 5.0.0
     "@redwoodjs/vite": 5.0.0
     "@redwoodjs/web": 5.0.0
-    "@spoonjoy/redwoodjs-dbauth-oauth-web": ^0.0.3
+    "@spoonjoy/redwoodjs-dbauth-oauth-web": ^1.0.0
     autoprefixer: ^10.4.14
     humanize-string: 2.1.0
     postcss: ^8.4.25
