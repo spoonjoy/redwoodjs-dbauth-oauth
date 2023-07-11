@@ -8,10 +8,8 @@ import {
   FieldError,
   Label,
 } from '@redwoodjs/forms'
-import { Link, routes } from '@redwoodjs/router'
-import { MetaTags } from '@redwoodjs/web'
 import { useMutation } from '@redwoodjs/web'
-import { toast, Toaster } from '@redwoodjs/web/toast'
+import { toast } from '@redwoodjs/web/toast'
 
 const CREATE_CONTACT = gql`
   mutation CreateContactMutation($input: CreateContactInput!) {
@@ -41,7 +39,6 @@ const ContactUsPage = () => {
 
   return (
     <>
-      <Toaster toastOptions={{ className: 'rw-toast', duration: 6000 }} />
       <Form onSubmit={onSubmit} config={{ mode: 'onBlur' }} error={error}>
         <Label
           name="name"
