@@ -11,7 +11,7 @@
   port = "${WEB_DEV_PORT:8910}"
   host = "local.spoonjoy.app"
   apiUrl = "/.redwood/functions" # You can customize graphql and dbauth urls individually too: see https://redwoodjs.com/docs/app-configuration-redwood-toml#api-paths
-  includeEnvironmentVariables = ["RWJS_API_URL", "APPLE_CLIENT_ID"]
+  includeEnvironmentVariables = ["RWJS_API_URL", "APPLE_CLIENT_ID", "GITHUB_CLIENT_ID", "GOOGLE_CLIENT_ID"]
 [api]
   port = "${API_DEV_PORT:8911}"
 [browser]

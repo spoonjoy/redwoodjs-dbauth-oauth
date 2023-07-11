@@ -180,6 +180,8 @@ export const handler = async (
     // We'll enable at least one of these later on, but leave it like this for now
     enabledProviders: {
       apple: true,
+      github: true,
+      google: true,
     },
   })
 

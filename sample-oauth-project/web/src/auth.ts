@@ -13,7 +13,7 @@ export const { AuthProvider, useAuth } = createAuth(dbAuthClient)
 const oAuthClient = createOAuthClient({
   // You can instead do `enabledProviders: {}`, but I find it more clear to be explicitly not enabling these
   // We'll enable at least one of these later on, but leave it like this for now
-  enabledProviders: { apple: true, github: false, google: false },
+  enabledProviders: { apple: true, github: true, google: true },
 })
 
 /**
