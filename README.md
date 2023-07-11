@@ -34,7 +34,6 @@ Additionally, because `RWJS_API_URL` is used by the web-side code, you'll need t
 
 ### Enabling OAuth Provider(s)
 After setting up both sides, you'll need to enable your chosen OAuth provider(s). Currently supported providers include:
-
-[Apple](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/wiki/Enabling-Apple-as-an-OAuth-provider)
-[GitHub](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/wiki/Enabling-GitHub-as-an-OAuth-provider)
-[Google](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/wiki/Enabling-Google-as-an-OAuth-provider)
+- [Apple - Enabling Apple as an OAuth provider](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/wiki/Enabling-Apple-as-an-OAuth-provider)
+- [GitHub - Enabling GitHub as an OAuth provider](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/wiki/Enabling-GitHub-as-an-OAuth-provider)
+- [Google - Enabling Google as an OAuth provider](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/wiki/Enabling-Google-as-an-OAuth-provider)
