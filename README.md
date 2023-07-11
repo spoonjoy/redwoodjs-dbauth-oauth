@@ -13,6 +13,8 @@ The project follows the dbAuth integration pattern as of Redwood version 4 and a
 - The `web` package handles the OAuth flow from the user's perspective.
 - The `api` package manages the communication with the OAuth provider and your database.
 
+This repo also includes a [fully set up example project](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/tree/main/sample-oauth-project).
+
 For more detailed information on each package, please refer to their respective README files:
 - [Web Package README](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/tree/main/web)
 - [API Package README](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/tree/main/api)
