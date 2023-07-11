@@ -50,6 +50,16 @@ const BlogLayout = ({ children }: BlogLayoutProps) => {
               <li>
                 <Link
                   className="rounded px-4 py-2 transition duration-100 hover:bg-blue-600"
+                  to={routes.settings()}
+                >
+                  Settings
+                </Link>
+              </li>
+            )}
+            {isAuthenticated && (
+              <li>
+                <Link
+                  className="rounded px-4 py-2 transition duration-100 hover:bg-blue-600"
                   onClick={logOut}
                   to={''}
                 >

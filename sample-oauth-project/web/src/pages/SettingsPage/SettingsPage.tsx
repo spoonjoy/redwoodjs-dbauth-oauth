@@ -12,7 +12,7 @@ const SettingsPage = () => {
     <>
       <MetaTags title="Settings" description="Settings page" />
 
-      <h1>SettingsPage</h1>
+      <h1>Settings</h1>
       <OAuthButtons
         action="link"
         getOAuthUrls={getOAuthUrls}

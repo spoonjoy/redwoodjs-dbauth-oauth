@@ -18,7 +18,6 @@ import { useAuth } from './auth'
 const Routes = () => {
   return (
     <Router useAuth={useAuth}>
-      <Route path="/settings" page={SettingsPage} name="settings" />
       <Route path="/double" page={DoublePage} name="double" prerender />
       <Route path="/login" page={LoginPage} name="login" />
       <Route path="/signup" page={SignupPage} name="signup" />
@@ -40,6 +39,7 @@ const Routes = () => {
         <Route path="/waterfall/{id:Int}" page={WaterfallPage} prerender name="waterfall" />
         <Private unauthenticated="login">
           <Route path="/profile" page={ProfilePage} name="profile" />
+          <Route path="/settings" page={SettingsPage} name="settings" />
         </Private>
         <Route path="/blog-post/{id:Int}" page={BlogPostPage} name="blogPost" prerender />
         <Route path="/contact" page={ContactUsPage} name="contactUs" />
