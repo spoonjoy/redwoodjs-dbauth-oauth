@@ -57,11 +57,11 @@ function createOAuthProvider(
   return OAuthProvider
 }
 
+/**
+ * @param {OAuthInstanceType} oAuthClient - An instance of the OAuthClient, created with createOAuthClient
+ * @param {(error: string) => void} onErrorFromRedirect - A callback function that will be called with the error message if the user is redirected back to the app with an error
+ */
 export function createOAuth(
-  /**
-   * @param {OAuthInstanceType} oAuthClient - An instance of the OAuthClient, created with createOAuthClient
-   * @param {(error: string) => void} onErrorFromRedirect - A callback function that will be called with the error message if the user is redirected back to the app with an error
-   */
   oAuthClient: OAuthInstanceType,
   onErrorFromRedirect: (error: string) => void
 ): {
