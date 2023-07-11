@@ -196,4 +196,4 @@ const YourComponent = () => {
 And that's it! If you haven't yet set up the `api` side, go check out [those instructions](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/blob/main/api/README.md#api-package-for-redwoodjs-dbauth-oauth-plugin).
 
 ### Next steps
-Now that you've set up both your `web` and `api` sides, it's time to [enable OAuth provider(s)](https://github.com/spoonjoy/redwoodjs-dbauth-oauth#enabling-oauth-provider(s))!
+Now that you've set up both your `web` and `api` sides, it's time to [enable OAuth provider(s)]([https://github.com/spoonjoy/redwoodjs-dbauth-oauth#enabling-oauth-provider(s)](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/wiki/Enabling-Apple-as-an-OAuth-provider)https://github.com/spoonjoy/redwoodjs-dbauth-oauth/wiki/Enabling-Apple-as-an-OAuth-provider)!
