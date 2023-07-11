@@ -53,8 +53,7 @@ We'll also need to add all of the redirect URIs that we'll be using - Apple requ
 
 Let's get started!
 
-In-depth instructions are still being written - here's a tl;dr:
-
+##### Prerequisites
 1. Sign up for an Apple developer account.
 2. Sign in to the Apple Developer portal. 
 
