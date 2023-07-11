@@ -5,7 +5,7 @@ A RedwoodJS plugin that adds OAuth capabilities to projects using dbAuth.
 [![Web side NPM version](https://img.shields.io/npm/v/%40spoonjoy%2Fredwoodjs-dbauth-oauth-web?logo=redwoodjs&label=npm%20-%20web%20side)](https://www.npmjs.com/package/@spoonjoy/redwoodjs-dbauth-oauth-web)
 
 ## Overview
-This plugin provides an easy and effective way to integrate OAuth into your RedwoodJS applications, offering a seamless experience for both developers and end users. Currently, it supports OAuth providers including Apple, GitHub, and Google, with a flexible architecture that allows for the addition of more providers.
+This plugin provides an easy and effective way to integrate OAuth into your RedwoodJS applications, offering a seamless experience for both developers and end users. Currently, it supports OAuth providers including Apple, GitHub, and Google, with a flexible architecture that allows for the expansion to more providers.
 
 ## Project Structure
 The project follows the dbAuth integration pattern as of Redwood version 4 and aligns with the Decoupled Auth strategy. It is structured as a Yarn monorepo with two main packages: `web` and `api`.
