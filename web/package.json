@@ -1,6 +1,6 @@
 {
   "name": "@spoonjoy/redwoodjs-dbauth-oauth-web",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Client-side OAuth integration for RedwoodJS projects using dbAuth. Also includes ready-to-use buttons for signup/login/link/unlink operations.",
   "author": "Ari Mendelow <ari@spoonjoy.app>",
   "homepage": "https://github.com/spoonjoy/redwoodjs-dbauth-oauth/tree/main/web",

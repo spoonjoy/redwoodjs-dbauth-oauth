@@ -1,6 +1,6 @@
 {
   "name": "@spoonjoy/redwoodjs-dbauth-oauth-api",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Server-side OAuth communication and database management for RedwoodJS projects using dbAuth. Follows the dbAuth integration pattern and reuses some of its functionality and configurations.",
   "author": "Ari Mendelow <ari@spoonjoy.app>",
   "homepage": "https://github.com/spoonjoy/redwoodjs-dbauth-oauth/tree/main/api",
