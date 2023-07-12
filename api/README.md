@@ -121,6 +121,31 @@ Then, we switched the original return statement to a switch statement. This is d
 - If the URL path is `/auth/oauth`, it will execute `oAuthHandler.invoke()`. This is new behavior introduced to handle OAuth requests.
 In other words, the switch statement allows the application to handle both traditional and OAuth authentication requests, routing them to the appropriate handler based on the URL path.
 
+### Updating the api `auth` library
+Double check that your `getCurrentUser` method is selecting the user's `email` attribute, if it exists on your `user` model. For example, if you're using a field called `username` as your username, you might need to make a change that looks like this:
+```diff
+  export const getCurrentUser = async (
+    session: Decoded
+  ): Promise<ICurrentUser> => {
+    if (!session || typeof session.id !== 'string') {
+      throw new Error('Invalid session')
+    }
+
+    const user = await db.user.findUnique({
+      where: { id: session.id },
+      select: {
+        id: true,
+        username: true,
++       email: true
+      },
+    })
+    if (!user) throw new AuthenticationError('You are not logged in.')
+    else return user
+  }
+```
+
+This is optional, but helpful as another way to associate linked accounts with your users.
+
 ### All done!
 And that's it! If you haven't yet set up the `web` side, go check out [those instructions](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/blob/main/web/README.md#web-package-for-redwoodjs-dbauth-oauth-plugin).
 
