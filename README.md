@@ -9,7 +9,7 @@ A RedwoodJS plugin that adds OAuth capabilities to projects using dbAuth.
 ## Overview
 This library provides an easy and effective way to integrate OAuth into your [RedwoodJS](https://redwoodjs.com/) applications, offering a seamless experience for both developers and end users. Currently, it supports OAuth providers including Apple, GitHub, and Google, with a flexible architecture that allows for the expansion to more providers.
 
-This library additionally provides buttons to make integration even more effortless:
+This library additionally provides buttons to make setup even more effortless:
 
 ![button screenshots](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/assets/16390116/ad13882e-3153-49df-bb06-5ffd30e04389)
 
