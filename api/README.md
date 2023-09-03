@@ -26,7 +26,7 @@ If you haven't already added the packages to your `web` and `api` workspaces, we
 First, we need to add the model for storing the linked OAuth provider information in the database. Go ahead and paste this wherever you like in `api/db/schema.prisma`:
 ```prisma
 model OAuth {
-  provider         string
+  provider         String
   // The ID of the user on the OAuth provider's system
   providerUserId   String
   // The username of the user on the OAuth provider's system. Useful for helping users identify their linked accounts
