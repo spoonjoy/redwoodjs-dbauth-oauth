@@ -3,7 +3,7 @@ import React from 'react'
 import LinkOAuth from './LinkOAuth'
 import LoginWithOAuth from './LoginWithOAuth'
 import SignupWithOAuth from './SignupWithOAuth'
-import { FTGetOAuthUrls } from '../oauth'
+import { FTGetOAuthUrls, IGetOAuthUrlsConfig } from '../oauth'
 import { ILinkOAuthConfig } from './buttonTypes'
 
 interface IOAuthButtonsProps {
@@ -31,6 +31,7 @@ interface IOAuthButtonsProps {
    * ```
    */
   getOAuthUrls: FTGetOAuthUrls
+  redirectUrlOverride: IGetOAuthUrlsConfig['redirectUrlOverride']
   /**
    * When the `action` is `link`, this config is required.
    */
@@ -41,6 +42,7 @@ const OAuthButtons = ({
   action,
   layoutClasses = 'flex gap-2 flex-wrap justify-center',
   getOAuthUrls,
+  redirectUrlOverride,
   linkOAuthConfig,
 }: IOAuthButtonsProps) => {
   if (!linkOAuthConfig && action === 'link') {
@@ -49,7 +51,7 @@ const OAuthButtons = ({
     )
   }
 
-  const oAuthUrls = getOAuthUrls({ method: action })
+  const oAuthUrls = getOAuthUrls({ method: action, redirectUrlOverride })
   return (
     <ul className={layoutClasses}>
       {(() => {

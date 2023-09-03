@@ -9,11 +9,12 @@ export interface IConnectedAccountRecord {
   createdAt: Date
 }
 
-interface IGetOAuthUrlsConfig {
+export interface IGetOAuthUrlsConfig {
   /**
    * By default, the redirect URL will be to whatever page the user is on when
    * they click the button. If you want to override this, you can pass in a
    * `redirectUrlOverride`.
+   * Default is `window.location.origin + window.location.pathname`.
    */
   redirectUrlOverride?: string
   /**
