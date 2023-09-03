@@ -48,6 +48,10 @@ const onOAuthError = (error: string) => {
   toast.error(error)
 }
 
+const oAuthClient = createOAuthClient({
+  enabledProviders: { apple: false, github: false, google: false },
+})
+
 export const { OAuthProvider, useOAuth } = createOAuth(
   oAuthClient,
   onOAuthError
