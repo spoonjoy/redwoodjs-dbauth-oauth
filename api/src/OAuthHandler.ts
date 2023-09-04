@@ -714,13 +714,27 @@ export class OAuthHandler<
     queryParams: Record<string, string> = {}
   ) {
     // If this exists, it should be a redirect back to the app
-    const redirectBackUrl = this._getStateParam() || process.env.FE_URL
+    const redirectBackUrl = this._getStateParam() || process.env.FE_URL || ''
 
+    // Create a URL object from the redirect back URL
+    const url = new URL(redirectBackUrl)
+
+    // Check if 'oAuthError' is in queryParams
+    if ('oAuthError' in queryParams) {
+      // Clear any existing search parameters
+      url.search = ''
+    }
+
+    // Create a URLSearchParams object from the new query parameters
     const queryString = new URLSearchParams(queryParams).toString()
+
+    // If url already has query parameters, append with '&' else append with '?'
+    url.search += (url.search ? '&' : '?') + queryString
+
     return [
       body,
       {
-        location: `${redirectBackUrl}${queryString && '?'}${queryString}`,
+        location: url.toString(),
         ...headers,
       },
       {
