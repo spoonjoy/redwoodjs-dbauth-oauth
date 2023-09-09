@@ -139,14 +139,14 @@ export class OAuthHandler<
   /** class constant: maps the functions to their required HTTP verb for access */
   static get VERBS(): Record<OAuthMethodNames, 'GET' | 'POST' | 'DELETE'> {
     return {
-      linkAppleAccount: 'GET',
+      linkAppleAccount: 'POST',
       linkGitHubAccount: 'GET',
       linkGoogleAccount: 'GET',
       unlinkAccount: 'DELETE',
-      loginWithApple: 'GET',
+      loginWithApple: 'POST',
       loginWithGitHub: 'GET',
       loginWithGoogle: 'GET',
-      signupWithApple: 'GET',
+      signupWithApple: 'POST',
       signupWithGitHub: 'GET',
       signupWithGoogle: 'GET',
       getConnectedAccounts: 'GET',

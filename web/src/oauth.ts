@@ -168,12 +168,10 @@ export default class OAuthClient {
     switch (provider) {
       case 'apple':
         /**
-         * no matter what you put here, you don't get anything back in the initial response, even though
+         * no matter what you put here, you don't get name back in the initial response, even though
          * the apple documentation says it'll send back a 'user' object with the email and name (https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_js/incorporating_sign_in_with_apple_into_other_platforms/#3332115).
-         * additionally, no matter what you put here, you still get the email in the ID token.
          */
-        scope = ''
-        // scope = 'name email'
+        scope = 'name email'
         break
       case 'github':
         scope = 'read:user user:email'
@@ -191,8 +189,7 @@ export default class OAuthClient {
     switch (provider) {
       case 'apple':
         clientSpecificOptions = {
-          response_mode: 'query',
-          // response_mode: 'form_post',
+          response_mode: 'form_post',
         }
         break
       case 'github':
