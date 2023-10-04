@@ -41,7 +41,12 @@ export interface OAuthHandlerOptions {
       userExistsFromProvider?: string
       alreadyLoggedIn?: string
       createUserError?: string
+      flowNotEnabled?: string
     }
+    /** Allow users to sign up. Defaults to true. Needs to be explicitly set to false to disable the flow */
+    enabled: boolean
+    /** Whatever you want to happen after a new user has been created. **/
+    handler?: (user: Record<string, any>) => Promise<Record<string, any>>
   }
   link?: {
     /** Customize any error messages by including a string value here for the given key. */
@@ -209,6 +214,7 @@ export class OAuthHandler<
       // START section with errors that should be configured as part of the DBAuthHandler setup, but we need defaults
       dbAuthHandlerErrors: {
         loginFlowNotEnabled: 'Login flow is not enabled',
+        signupFlowNotEnabled: 'Signup flow is not enabled',
       },
       // END section with errors that should be configured as part of the DBAuthHandler setup
 
@@ -417,6 +423,10 @@ export class OAuthHandler<
     )
     if (maybeExistingUserWithEmail) {
       throw new Error(this._getErrorMessage('signup', 'userExistsWithEmail'))
+    }
+
+    if (this.options?.signup?.enabled == false) {  
+      throw new Error(this._getErrorMessage('signup', 'signupFlowNotEnabled'))
     }
 
     return true
@@ -1063,6 +1073,8 @@ export class OAuthHandler<
     const newUser = await this.createNewUser(userInfo)
     // this is normally used just to link account to the user, but we want to log the user in, so we don't care about the response. It'll throw an error if it fails.
     await this._linkProviderToUser(userInfo, newUser)
+
+    if (this.options?.signup?.handler) await this.options.signup.handler(newUser)
 
     return this._loginResponse(newUser)
   }
