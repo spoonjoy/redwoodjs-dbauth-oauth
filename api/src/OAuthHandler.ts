@@ -18,7 +18,7 @@ import type {
   IConnectedAccountRecord,
 } from './types'
 
-export interface OAuthHandlerOptions {
+export interface OAuthHandlerOptions<TUser = Record<string | number, any>> {
   /**
    * The name of the property you'd call on `db` to access your OAuth table.
    * ie. if your Prisma model is named `OAuth` this value would be `oAuth`, as in `db.oAuth`
@@ -42,11 +42,13 @@ export interface OAuthHandlerOptions {
       alreadyLoggedIn?: string
       createUserError?: string
       flowNotEnabled?: string
-    }
-    /** Allow users to sign up. Defaults to true. Needs to be explicitly set to false to disable the flow */
-    enabled: boolean
-    /** Whatever you want to happen after a new user has been created. **/
-    handler?: (user: Record<string, any>) => Promise<Record<string, any>>
+    } 
+    /**
+    * Whatever you want to happen to your data after a new user has been created.
+    * check for duplicate usernames before calling this handler. At a minimum
+    * you need to return the user object that was passed in.
+    */ 
+    handler?: (user: TUser) => Promise<TUser>
   }
   link?: {
     /** Customize any error messages by including a string value here for the given key. */
@@ -403,10 +405,36 @@ export class OAuthHandler<
   }
 
   /**
+  * Validates that the login can proceed.
+  * @returns `true` if the login can proceed, otherwise throws one of the `login` errors.
+  */
+  async _validateLogin(userInfo: IUserInfo) {
+    if (this.dbAuthHandlerInstance.options.login.enabled === false) {
+      throw new Error(
+        (this.dbAuthHandlerInstance.options.login as any)?.errors
+          ?.flowNotEnabled ||
+          OAuthHandler.ERROR_MESSAGE_DEFAULTS.dbAuthHandlerErrors
+            .loginFlowNotEnabled
+      )
+    }
+
+    return true
+  }
+
+  /**
    * Validates that the signup can proceed.
    * @returns `true` if the signup can proceed, otherwise throws one of the `signup` errors.
    */
   async _validateSignup(userInfo: IUserInfo) {
+    if (this.dbAuthHandlerInstance.options.signup.enabled === false) {
+      throw new Error(
+        (this.dbAuthHandlerInstance.options.signup as any)?.errors
+          ?.flowNotEnabled ||
+          OAuthHandler.ERROR_MESSAGE_DEFAULTS.dbAuthHandlerErrors
+            .signupFlowNotEnabled
+      )
+    }
+
     const currentUser = await this._getCurrentUser()
     if (currentUser) {
       throw new Error(this._getErrorMessage('signup', 'alreadyLoggedIn'))
@@ -423,14 +451,12 @@ export class OAuthHandler<
     )
     if (maybeExistingUserWithEmail) {
       throw new Error(this._getErrorMessage('signup', 'userExistsWithEmail'))
-    }
-
-    if (this.options?.signup?.enabled == false) {  
-      throw new Error(this._getErrorMessage('signup', 'signupFlowNotEnabled'))
-    }
+    } 
 
     return true
   }
+
+
 
   /**
    * Validates that the account linking can proceed.
@@ -788,19 +814,9 @@ export class OAuthHandler<
    * configured `login.handler` to be used. See the dbAuth docs for more info.
    * @param user the user to log in.
    */
-  async _loginResponse(user: Record<string, any>) {
-    if (this.dbAuthHandlerInstance.options.login.enabled === false) {
-      // this doesn't use this._getErrorMessage because it's a DbAuthHandler error, not an OAuthHandler error
-      throw new Error(
-        (this.dbAuthHandlerInstance.options.login as any)?.errors
-          ?.flowNotEnabled ||
-          OAuthHandler.ERROR_MESSAGE_DEFAULTS.dbAuthHandlerErrors
-            .loginFlowNotEnabled
-      )
-    }
-
+  async _sessionResponse(user: Record<string, any>) {
     // the below is straight from the DBAuthHandler's login() method
-    const handlerUser = await this.dbAuthHandlerInstance.options.login.handler(
+    const handlerUser = await (this.dbAuthHandlerInstance.options.login as any).handler(
       user as TUser
     )
 
@@ -1030,6 +1046,11 @@ export class OAuthHandler<
     if (!newUser) {
       throw new Error(this._getErrorMessage('signup', 'createUserError'))
     }
+
+    if (this.options.signup?.handler) {
+      newUser = await this.options.signup.handler(newUser)
+    }
+
     return newUser
   }
 
@@ -1053,13 +1074,15 @@ export class OAuthHandler<
    */
   async _loginWithProvider() {
     const userInfo = await this._getUserInfoFromProvider()
-    const user = await this._getUserByProviderUserId(userInfo.uid)
 
+    await this._validateLogin(userInfo)
+
+    const user = await this._getUserByProviderUserId(userInfo.uid)
     if (!user) {
       throw new Error(this._getErrorMessage('login', 'userNotFound'))
     }
 
-    return this._loginResponse(user)
+    return this._sessionResponse(user)
   }
 
   /**
@@ -1073,10 +1096,8 @@ export class OAuthHandler<
     const newUser = await this.createNewUser(userInfo)
     // this is normally used just to link account to the user, but we want to log the user in, so we don't care about the response. It'll throw an error if it fails.
     await this._linkProviderToUser(userInfo, newUser)
-
-    if (this.options?.signup?.handler) await this.options.signup.handler(newUser)
-
-    return this._loginResponse(newUser)
+    
+    return this._sessionResponse(newUser)
   }
 
   /** END section on workload grouping */
