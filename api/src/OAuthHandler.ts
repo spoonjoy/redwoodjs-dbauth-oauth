@@ -40,8 +40,7 @@ export interface OAuthHandlerOptions<TUser = Record<string | number, any>> {
       userExistsWithEmail?: string
       userExistsFromProvider?: string
       alreadyLoggedIn?: string
-      createUserError?: string
-      flowNotEnabled?: string
+      createUserError?: string 
     } 
     /**
     * Whatever you want to happen to your data after a new user has been created.
