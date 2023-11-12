@@ -5538,15 +5538,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@spoonjoy/redwoodjs-dbauth-oauth-web@npm:^1.2.2":
-  version: 1.2.2
-  resolution: "@spoonjoy/redwoodjs-dbauth-oauth-web@npm:1.2.2"
+"@spoonjoy/redwoodjs-dbauth-oauth-web@npm:^1.2.3":
+  version: 1.2.3
+  resolution: "@spoonjoy/redwoodjs-dbauth-oauth-web@npm:1.2.3"
   peerDependencies:
     "@redwoodjs/core": ^5.4.1
     "@redwoodjs/router": ^5.4.1
     react: 18.2.0
     react-dom: 18.2.0
-  checksum: 71e4091cb4a9eaa2cd4ba54e4faaa33fec0c37ebee248c26f6c7d78e2f53596d6e15f119916cf184dc65c427af7cfb155caf169407b322b621b303ddd72b48e0
+  checksum: 8c80ae5c58a33b72b730440f49e6764ff70c95edbaccfba3201f61ae6b37a163e8c39634e7d08f0ac613c335bb382f4ab357cb9332b16b4dfa240975500dc8e3
   languageName: node
   linkType: hard
 
@@ -22641,7 +22641,7 @@ __metadata:
     "@redwoodjs/router": 6.3.3
     "@redwoodjs/vite": 6.3.3
     "@redwoodjs/web": 6.3.3
-    "@spoonjoy/redwoodjs-dbauth-oauth-web": ^1.2.2
+    "@spoonjoy/redwoodjs-dbauth-oauth-web": ^1.2.3
     autoprefixer: ^10.4.14
     humanize-string: 2.1.0
     postcss: ^8.4.25
