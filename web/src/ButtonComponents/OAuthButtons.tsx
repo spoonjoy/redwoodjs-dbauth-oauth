@@ -31,7 +31,7 @@ interface IOAuthButtonsProps {
    * ```
    */
   getOAuthUrls: FTGetOAuthUrls
-  redirectUrlOverride: IGetOAuthUrlsConfig['redirectUrlOverride']
+  redirectUrlOverride?: IGetOAuthUrlsConfig['redirectUrlOverride']
   /**
    * When the `action` is `link`, this config is required.
    */
