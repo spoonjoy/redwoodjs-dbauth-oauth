@@ -11,10 +11,10 @@
     ]
   },
   "dependencies": {
-    "@redwoodjs/auth-dbauth-web": "6.3.3",
-    "@redwoodjs/forms": "6.3.3",
-    "@redwoodjs/router": "6.3.3",
-    "@redwoodjs/web": "6.3.3",
+    "@redwoodjs/auth-dbauth-web": "8.1.1",
+    "@redwoodjs/forms": "8.1.1",
+    "@redwoodjs/router": "8.1.1",
+    "@redwoodjs/web": "8.1.1",
     "@spoonjoy/redwoodjs-dbauth-oauth-web": "^1.2.3",
     "humanize-string": "2.1.0",
     "prop-types": "15.8.1",
@@ -22,7 +22,7 @@
     "react-dom": "18.3.0-canary-035a41c4e-20230704"
   },
   "devDependencies": {
-    "@redwoodjs/vite": "6.3.3",
+    "@redwoodjs/vite": "8.1.1",
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.25",
     "postcss-loader": "^7.3.3",
