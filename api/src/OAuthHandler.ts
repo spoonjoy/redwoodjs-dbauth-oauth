@@ -1,5 +1,13 @@
-import { DbAuthHandler } from '@redwoodjs/auth-dbauth-api'
-import { normalizeRequest } from '@redwoodjs/api'
+import {
+  DbAuthHandler,
+  getDbAuthResponseBuilder,
+} from '@redwoodjs/auth-dbauth-api'
+import {
+  CorsHeaders,
+  isFetchApiRequest,
+  normalizeRequest,
+  PartialRequest,
+} from '@redwoodjs/api'
 import type { APIGatewayProxyEvent, Context as LambdaContext } from 'aws-lambda'
 import { PrismaClient } from '@prisma/client'
 import jwt from 'jsonwebtoken'
@@ -40,13 +48,13 @@ export interface OAuthHandlerOptions<TUser = Record<string | number, any>> {
       userExistsWithEmail?: string
       userExistsFromProvider?: string
       alreadyLoggedIn?: string
-      createUserError?: string 
-    } 
+      createUserError?: string
+    }
     /**
-    * Whatever you want to happen to your data after a new user has been created.
-    * check for duplicate usernames before calling this handler. At a minimum
-    * you need to return the user object that was passed in.
-    */ 
+     * Whatever you want to happen to your data after a new user has been created.
+     * check for duplicate usernames before calling this handler. At a minimum
+     * you need to return the user object that was passed in.
+     */
     handler?: (user: TUser) => Promise<TUser>
   }
   link?: {
@@ -115,15 +123,41 @@ export class OAuthHandler<
 > {
   options: OAuthHandlerOptions
 
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent | Request
+
+  _normalizedRequest: PartialRequest<Params> | undefined
+  httpMethod: string
+
   context: LambdaContext
   dbAuthHandlerInstance: DbAuthHandler<TUser, TIdType>
-
-  params: Params
 
   db: PrismaClient
   dbUserAccessor: any
   dbOAuthAccessor: any
+
+  createResponse: (
+    response: {
+      body?: string
+      statusCode: number
+      headers?: Headers
+    },
+    corsHeaders: CorsHeaders
+  ) => {
+    headers: Record<string, string | string[]>
+    body?: string | undefined
+    statusCode: number
+  }
+
+  public get normalizedRequest() {
+    if (!this._normalizedRequest) {
+      // This is a dev time error, no need to throw a specialized error
+      throw new Error(
+        'dbAuthHandler has not been initialized. Either await ' +
+          'dbAuthHandler.invoke() or call await dbAuth.init()'
+      )
+    }
+    return this._normalizedRequest
+  }
 
   /** class constant: list of methods that are supported */
   static get METHODS(): OAuthMethodNames[] {
@@ -289,14 +323,16 @@ export class OAuthHandler<
 
   /** Gets the requested method from the API call. */
   _getOAuthMethod() {
-    // try getting it from the query string, /.redwood/functions/auth?method=[methodName]
-    let methodName = this.event.queryStringParameters
-      ?.method as OAuthMethodNames
+    // try getting it from the query string, /.redwood/functions/auth/oauth?method=[methodName]
+    let methodName = this.normalizedRequest.query?.method as OAuthMethodNames
 
-    if (!OAuthHandler.METHODS.includes(methodName) && this.params) {
+    if (
+      !OAuthHandler.METHODS.includes(methodName) &&
+      this.normalizedRequest.jsonBody
+    ) {
       // try getting it from the body in JSON: { method: [methodName] }
       try {
-        methodName = this.params.method
+        methodName = this.normalizedRequest.jsonBody.method
       } catch (e) {
         // there's no body, or it's not JSON, `handler` will return a 404
       }
@@ -307,7 +343,8 @@ export class OAuthHandler<
 
   /** Gets the `code` param, and throws an error if it's not found. */
   _getCodeParam() {
-    const code = this.params.code || this.event.queryStringParameters?.code
+    const code =
+      this.normalizedRequest.jsonBody.code || this.normalizedRequest.query?.code
 
     if (!code || String(code).trim() === '') {
       throw new Error(this._getErrorMessage('params', 'noCodeProvided'))
@@ -318,7 +355,9 @@ export class OAuthHandler<
 
   /** Gets the `state` param, and throws an error if it's not found. */
   _getStateParam(required = false) {
-    const state = this.params.state || this.event.queryStringParameters?.state
+    const state =
+      this.normalizedRequest.jsonBody.state ||
+      this.normalizedRequest.query?.state
 
     if (!state || String(state).trim() === '') {
       if (required) {
@@ -333,7 +372,7 @@ export class OAuthHandler<
 
   /** Gets the `provider` param, and throws an error if it's not found. */
   _getProviderParam(): Provider {
-    const provider = this.params.provider
+    const provider = this.normalizedRequest.jsonBody.provider
 
     if (!provider || String(provider).trim() === '') {
       throw new Error(
@@ -353,7 +392,7 @@ export class OAuthHandler<
    * @param options - The options for the OAuthHandler
    */
   constructor(
-    event: APIGatewayProxyEvent,
+    event: APIGatewayProxyEvent | Request,
     context: LambdaContext,
     dbAuthHandlerInstance: DbAuthHandler<TUser, TIdType>,
     options: OAuthHandlerOptions
@@ -361,14 +400,15 @@ export class OAuthHandler<
     this.options = options
 
     this.event = event
+    this.httpMethod = isFetchApiRequest(event) ? event.method : event.httpMethod
     this.context = context
     this.dbAuthHandlerInstance = dbAuthHandlerInstance
-
-    this.params = this.dbAuthHandlerInstance._parseBody()
 
     this.db = dbAuthHandlerInstance.db
     this.dbUserAccessor = dbAuthHandlerInstance.dbAccessor
     this.dbOAuthAccessor = this.db[options.oAuthModelAccessor]
+
+    this.createResponse = getDbAuthResponseBuilder(event)
   }
 
   /** START section on validators/verifiers */
@@ -394,7 +434,7 @@ export class OAuthHandler<
    * @returns `true` if the provider is enabled, otherwise throws an error
    */
   _verifyEnabledProvider() {
-    const provider = this.params.provider as Provider
+    const provider = this.normalizedRequest.jsonBody.provider as Provider
 
     if (!this.options.enabledProviders[provider]) {
       throw new Error(
@@ -404,9 +444,9 @@ export class OAuthHandler<
   }
 
   /**
-  * Validates that the login can proceed.
-  * @returns `true` if the login can proceed, otherwise throws one of the `login` errors.
-  */
+   * Validates that the login can proceed.
+   * @returns `true` if the login can proceed, otherwise throws one of the `login` errors.
+   */
   async _validateLogin(userInfo: IUserInfo) {
     if (this.dbAuthHandlerInstance.options.login.enabled === false) {
       throw new Error(
@@ -450,12 +490,10 @@ export class OAuthHandler<
     )
     if (maybeExistingUserWithEmail) {
       throw new Error(this._getErrorMessage('signup', 'userExistsWithEmail'))
-    } 
+    }
 
     return true
   }
-
-
 
   /**
    * Validates that the account linking can proceed.
@@ -745,7 +783,7 @@ export class OAuthHandler<
    */
   _redirectToSite(
     body: any,
-    headers: Record<string, unknown> = {},
+    headers: Headers = new Headers(),
     queryParams: Record<string, string> = {}
   ) {
     // If this exists, it should be a redirect back to the app
@@ -783,13 +821,9 @@ export class OAuthHandler<
    * @param errorMessage the error message to return to the app. Will be added to the query params.
    */
   _redirectToSiteWithError(errorMessage: string) {
-    return this._redirectToSite(
-      {},
-      {},
-      {
-        oAuthError: errorMessage,
-      }
-    )
+    return this._redirectToSite({}, undefined, {
+      oAuthError: errorMessage,
+    })
   }
 
   /**
@@ -798,11 +832,9 @@ export class OAuthHandler<
    * @param oAuthRecord the new oAuthRecord that was created.
    */
   _linkAccountResponse(oAuthRecord: IConnectedAccountRecord) {
-    return this._redirectToSite(
-      oAuthRecord,
-      {},
-      { linkedAccount: oAuthRecord.provider.toLowerCase() }
-    )
+    return this._redirectToSite(oAuthRecord, undefined, {
+      linkedAccount: oAuthRecord.provider.toLowerCase(),
+    })
   }
 
   /**
@@ -815,9 +847,9 @@ export class OAuthHandler<
    */
   async _sessionResponse(user: Record<string, any>) {
     // the below is straight from the DBAuthHandler's login() method
-    const handlerUser = await (this.dbAuthHandlerInstance.options.login as any).handler(
-      user as TUser
-    )
+    const handlerUser = await (
+      this.dbAuthHandlerInstance.options.login as any
+    ).handler(user as TUser)
 
     if (
       handlerUser == null ||
@@ -832,13 +864,22 @@ export class OAuthHandler<
 
     const csrfToken = DbAuthHandler.CSRF_TOKEN
 
-    return this._redirectToSite(sessionData, {
-      'csrf-token': csrfToken,
-      ...this.dbAuthHandlerInstance._createSessionHeader(
+    const headers = new Headers()
+
+    headers.append('csrf-token', csrfToken)
+    headers.append(
+      'set-cookie',
+      this.dbAuthHandlerInstance._createAuthProviderCookieString()
+    )
+    headers.append(
+      'set-cookie',
+      this.dbAuthHandlerInstance._createSessionCookieString(
         sessionData,
         csrfToken
-      ),
-    })
+      )
+    )
+
+    return this._redirectToSite(sessionData, headers)
   }
 
   /**
@@ -1095,7 +1136,7 @@ export class OAuthHandler<
     const newUser = await this.createNewUser(userInfo)
     // this is normally used just to link account to the user, but we want to log the user in, so we don't care about the response. It'll throw an error if it fails.
     await this._linkProviderToUser(userInfo, newUser)
-    
+
     return this._sessionResponse(newUser)
   }
 
@@ -1104,46 +1145,46 @@ export class OAuthHandler<
   /** START section on public methods */
 
   async signupWithApple() {
-    this.params.provider = 'apple'
+    this.normalizedRequest.jsonBody.provider = 'apple'
     return this._signupWithProvider()
   }
 
   async signupWithGitHub() {
-    this.params.provider = 'github'
+    this.normalizedRequest.jsonBody.provider = 'github'
     return this._signupWithProvider()
   }
 
   async signupWithGoogle() {
-    this.params.provider = 'google'
+    this.normalizedRequest.jsonBody.provider = 'google'
     return this._signupWithProvider()
   }
 
   async loginWithApple() {
-    this.params.provider = 'apple'
+    this.normalizedRequest.jsonBody.provider = 'apple'
     return this._loginWithProvider()
   }
   async loginWithGitHub() {
-    this.params.provider = 'github'
+    this.normalizedRequest.jsonBody.provider = 'github'
     return this._loginWithProvider()
   }
 
   async loginWithGoogle() {
-    this.params.provider = 'google'
+    this.normalizedRequest.jsonBody.provider = 'google'
     return this._loginWithProvider()
   }
 
   async linkAppleAccount() {
-    this.params.provider = 'apple'
+    this.normalizedRequest.jsonBody.provider = 'apple'
     return this._linkProviderAccount()
   }
 
   async linkGitHubAccount() {
-    this.params.provider = 'github'
+    this.normalizedRequest.jsonBody.provider = 'github'
     return this._linkProviderAccount()
   }
 
   async linkGoogleAccount() {
-    this.params.provider = 'google'
+    this.normalizedRequest.jsonBody.provider = 'google'
     return this._linkProviderAccount()
   }
 
@@ -1176,6 +1217,18 @@ export class OAuthHandler<
   /** END section on public methods */
 
   /**
+   * This initializes the request object. This is async now, because body in Fetch Request
+   * is parsed async.
+   */
+  async init() {
+    if (!this._normalizedRequest) {
+      this._normalizedRequest = (await normalizeRequest(
+        this.event
+      )) as PartialRequest<Params>
+    }
+  }
+
+  /**
    * This should be called by the API endpoint once the class has been instantiated, and handles
    * the routing of the request to the correct method as well as the response.
    */
@@ -1190,15 +1243,15 @@ export class OAuthHandler<
 
       // get the method the incoming request is trying to call
       if (!OAuthHandler.METHODS.includes(method)) {
-        return this.dbAuthHandlerInstance._buildResponseWithCorsHeaders(
+        return this.createResponse(
           this.dbAuthHandlerInstance._notFound(),
           corsHeaders
         )
       }
 
       // make sure it's using the correct verb, GET vs POST
-      if (this.event.httpMethod !== OAuthHandler.VERBS[method]) {
-        return this.dbAuthHandlerInstance._buildResponseWithCorsHeaders(
+      if (this.httpMethod !== OAuthHandler.VERBS[method]) {
+        return this.createResponse(
           this.dbAuthHandlerInstance._notFound(),
           corsHeaders
         )
@@ -1209,12 +1262,10 @@ export class OAuthHandler<
         method
       ]()
 
-      const response = this.dbAuthHandlerInstance._buildResponseWithCorsHeaders(
+      return this.createResponse(
         this.dbAuthHandlerInstance._ok(body, headers, options),
         corsHeaders
       )
-      console.log('response', response)
-      return response
     } catch (e: any) {
       // if there's an error, and the method is a redirect method, redirect to the site with the error message
       if (OAuthHandler.REDIRECT_METHODS[this._getOAuthMethod()]) {
@@ -1223,7 +1274,7 @@ export class OAuthHandler<
         )
         return this.dbAuthHandlerInstance._ok(body, headers, options)
       } else {
-        return this.dbAuthHandlerInstance._buildResponseWithCorsHeaders(
+        return this.createResponse(
           this.dbAuthHandlerInstance._badRequest(e.message || e),
           corsHeaders
         )
