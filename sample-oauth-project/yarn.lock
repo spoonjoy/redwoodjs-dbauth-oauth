@@ -2027,26 +2027,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime-corejs3@npm:7.21.0":
-  version: 7.21.0
-  resolution: "@babel/runtime-corejs3@npm:7.21.0"
-  dependencies:
-    core-js-pure: ^3.25.1
-    regenerator-runtime: ^0.13.11
-  checksum: b46896f9a774eeb0e8d2597a0a43a87ede27eebec650b3e17719c14a502289ece95029fe5bc8be84798fb1879b69d54efc1f42c3127f1afaf7778d3b8bb692b5
-  languageName: node
-  linkType: hard
-
-"@babel/runtime-corejs3@npm:7.22.3":
-  version: 7.22.3
-  resolution: "@babel/runtime-corejs3@npm:7.22.3"
-  dependencies:
-    core-js-pure: ^3.30.2
-    regenerator-runtime: ^0.13.11
-  checksum: 347499c6f2fe2b32c5333903ca83e9f3794c3cf185ea706254e2dc50be29abb7eda8daa4f6733a420854a938a91f4fe63225273b466da10b29c170116b69168b
-  languageName: node
-  linkType: hard
-
 "@babel/runtime-corejs3@npm:7.25.0":
   version: 7.25.0
   resolution: "@babel/runtime-corejs3@npm:7.25.0"
@@ -4744,34 +4724,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/client@npm:4.13.0":
-  version: 4.13.0
-  resolution: "@prisma/client@npm:4.13.0"
-  dependencies:
-    "@prisma/engines-version": 4.13.0-50.1e7af066ee9cb95cf3a403c78d9aab3e6b04f37a
-  peerDependencies:
-    prisma: "*"
-  peerDependenciesMeta:
-    prisma:
-      optional: true
-  checksum: 130d3618723cc79325d9bbb5619b36385d3bf6b133c307c92e26ea55af755b719facd37ebaffaa0bf1c5ccbae97d64b1344cadb873e943232ec59612ec11b605
-  languageName: node
-  linkType: hard
-
-"@prisma/client@npm:4.15.0":
-  version: 4.15.0
-  resolution: "@prisma/client@npm:4.15.0"
-  dependencies:
-    "@prisma/engines-version": 4.15.0-28.8fbc245156db7124f997f4cecdd8d1219e360944
-  peerDependencies:
-    prisma: "*"
-  peerDependenciesMeta:
-    prisma:
-      optional: true
-  checksum: e9e2f7813b722ac511554226e6c1fce4ee99f2ac6fbb84a50982be782e2d1c8994e9a787478450de85af704dbd8186a9913ada34f8174ea71f1ae3d3334861bf
-  languageName: node
-  linkType: hard
-
 "@prisma/client@npm:5.19.1":
   version: 5.19.1
   resolution: "@prisma/client@npm:5.19.1"
@@ -4788,20 +4740,6 @@ __metadata:
   version: 5.19.1
   resolution: "@prisma/debug@npm:5.19.1"
   checksum: 4b88719b9a0dd76692bec766fd8188b685a81f0459f3df8fb44b4c492b483a6aadaf7021f7aca90afa5a2f27d84d737a3f2d5abed5f9f818a640487f49d1b8c4
-  languageName: node
-  linkType: hard
-
-"@prisma/engines-version@npm:4.13.0-50.1e7af066ee9cb95cf3a403c78d9aab3e6b04f37a":
-  version: 4.13.0-50.1e7af066ee9cb95cf3a403c78d9aab3e6b04f37a
-  resolution: "@prisma/engines-version@npm:4.13.0-50.1e7af066ee9cb95cf3a403c78d9aab3e6b04f37a"
-  checksum: 8f83eb86c5e03588b35ef3887288e0de1f817d105ad8d0ed85b013990b3b213de322e89412c8a84d8da4a1eb847e3ef8c92acc8961788fb223c96bc4194cec1f
-  languageName: node
-  linkType: hard
-
-"@prisma/engines-version@npm:4.15.0-28.8fbc245156db7124f997f4cecdd8d1219e360944":
-  version: 4.15.0-28.8fbc245156db7124f997f4cecdd8d1219e360944
-  resolution: "@prisma/engines-version@npm:4.15.0-28.8fbc245156db7124f997f4cecdd8d1219e360944"
-  checksum: eabf46e6ea15783d9fb2e579867b90ea768b3542cadc7d5356972bd6fb473f7d462a62ca276384cb9dbf2ec48804bbf97000091b17350f63ddb61af723009a90
   languageName: node
   linkType: hard
 
@@ -4924,36 +4862,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redwoodjs/api@npm:5.0.0":
-  version: 5.0.0
-  resolution: "@redwoodjs/api@npm:5.0.0"
-  dependencies:
-    "@babel/runtime-corejs3": 7.21.0
-    "@prisma/client": 4.13.0
-    "@whatwg-node/fetch": 0.8.8
-    core-js: 3.30.1
-    humanize-string: 2.1.0
-    jsonwebtoken: 9.0.0
-    pascalcase: 1.0.0
-    pino: 8.11.0
-    title-case: 3.0.3
-  peerDependencies:
-    memjs: 1.3.1
-    redis: 4.6.5
-  peerDependenciesMeta:
-    memjs:
-      optional: true
-    redis:
-      optional: true
-  bin:
-    redwood: dist/bins/redwood.js
-    rw: dist/bins/redwood.js
-    rwfw: dist/bins/rwfw.js
-    tsc: dist/bins/tsc.js
-  checksum: fd42cf7a2110a2ca8e1af7c2e6a3d6d9d7f240c29d5d816f76885c035f253de121437f7c6a8b4ee7f082089e28d145ab8ac1b8a4c22970f0e460606d83b4e2a8
-  languageName: node
-  linkType: hard
-
 "@redwoodjs/api@npm:8.1.1":
   version: 8.1.1
   resolution: "@redwoodjs/api@npm:8.1.1"
@@ -4980,20 +4888,6 @@ __metadata:
     rwfw: ./dist/bins/rwfw.js
     tsc: ./dist/bins/tsc.js
   checksum: b7dd14d5091c7f2ec614cbbdf60bd654e63b007acde89681a271b442052284ae07c8deb5dd3b095c1c6bc7fb5f68707dfb36c7bae6f09bbd2a2c81c7821b71ce
-  languageName: node
-  linkType: hard
-
-"@redwoodjs/auth-dbauth-api@npm:5.3.0":
-  version: 5.3.0
-  resolution: "@redwoodjs/auth-dbauth-api@npm:5.3.0"
-  dependencies:
-    "@babel/runtime-corejs3": 7.22.3
-    base64url: 3.0.1
-    core-js: 3.30.2
-    crypto-js: 4.1.1
-    md5: 2.3.0
-    uuid: 9.0.0
-  checksum: 213a3464beaa20fd5684e5442ebe7944aed522646117de42a7b00cff7f16d5b305456beba4a75e162bcb3fd89e57e1078ee5d718bb51a55db397ab2577017ee7
   languageName: node
   linkType: hard
 
@@ -5816,31 +5710,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@spoonjoy/redwoodjs-dbauth-oauth-api@npm:^1.3.0":
+"@spoonjoy/redwoodjs-dbauth-oauth-api@file:.yalc/@spoonjoy/redwoodjs-dbauth-oauth-api::locator=api%40workspace%3Aapi":
   version: 1.3.0
-  resolution: "@spoonjoy/redwoodjs-dbauth-oauth-api@npm:1.3.0"
+  resolution: "@spoonjoy/redwoodjs-dbauth-oauth-api@file:.yalc/@spoonjoy/redwoodjs-dbauth-oauth-api#.yalc/@spoonjoy/redwoodjs-dbauth-oauth-api::hash=4b3716&locator=api%40workspace%3Aapi"
   dependencies:
-    "@prisma/client": 4.15.0
-    "@redwoodjs/api": 5.0.0
-    "@redwoodjs/auth-dbauth-api": 5.3.0
+    "@prisma/client": 5.19.1
+    "@redwoodjs/api": 8.1.1
+    "@redwoodjs/auth-dbauth-api": 8.1.1
     "@types/uuid": ^9.0.2
     aws-lambda: ^1.0.7
     jsonwebtoken: ^9.0.0
     md5: ^2.3.0
     uuid: ^9.0.0
-  checksum: f1eed8e98301f467ccf09f381742cc13f922a3aa5cfc03670f79637c7dfce5ee1ff3bddd65865ef65e7359518b7fe74261c966f9e903ee5914178d2d69017aba
+  checksum: 69c43eb56a85f9c1136ab2e7e64cbc2803b66f20240888f837ae8c0992a2ea9321a071207ef39ba46b247bab307b2f70c87e9bb979d9aeb23d1ccab3011a94bc
   languageName: node
   linkType: hard
 
-"@spoonjoy/redwoodjs-dbauth-oauth-web@npm:^1.2.3":
+"@spoonjoy/redwoodjs-dbauth-oauth-web@file:.yalc/@spoonjoy/redwoodjs-dbauth-oauth-web::locator=web%40workspace%3Aweb":
   version: 1.2.3
-  resolution: "@spoonjoy/redwoodjs-dbauth-oauth-web@npm:1.2.3"
+  resolution: "@spoonjoy/redwoodjs-dbauth-oauth-web@file:.yalc/@spoonjoy/redwoodjs-dbauth-oauth-web#.yalc/@spoonjoy/redwoodjs-dbauth-oauth-web::hash=cc9019&locator=web%40workspace%3Aweb"
   peerDependencies:
-    "@redwoodjs/core": ^5.4.1
-    "@redwoodjs/router": ^5.4.1
+    "@redwoodjs/core": 8.1.1
+    "@redwoodjs/router": 8.1.1
     react: 18.2.0
     react-dom: 18.2.0
-  checksum: 8c80ae5c58a33b72b730440f49e6764ff70c95edbaccfba3201f61ae6b37a163e8c39634e7d08f0ac613c335bb382f4ab357cb9332b16b4dfa240975500dc8e3
+  checksum: ed3d9586870435b5f065baa2fa7f71161c360055cd43971f175207c2c5561ec62fc05000a3c8949a3404f193ccb30652862b813f802f1f90dbf1f5fc1c15d185
   languageName: node
   linkType: hard
 
@@ -7139,7 +7033,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@whatwg-node/fetch@npm:0.8.8, @whatwg-node/fetch@npm:^0.8.0, @whatwg-node/fetch@npm:^0.8.1, @whatwg-node/fetch@npm:^0.8.2":
+"@whatwg-node/fetch@npm:0.9.21, @whatwg-node/fetch@npm:^0.9.18, @whatwg-node/fetch@npm:^0.9.21":
+  version: 0.9.21
+  resolution: "@whatwg-node/fetch@npm:0.9.21"
+  dependencies:
+    "@whatwg-node/node-fetch": ^0.5.23
+    urlpattern-polyfill: ^10.0.0
+  checksum: c0727e32673fa0596aff9786995b308fc92c33290807c72333af2a5c7a7e38ca6e236ec641bb4caded25e30127bee4b9df2e15d47c064970c2f7df58b084ca8d
+  languageName: node
+  linkType: hard
+
+"@whatwg-node/fetch@npm:^0.8.0, @whatwg-node/fetch@npm:^0.8.1, @whatwg-node/fetch@npm:^0.8.2":
   version: 0.8.8
   resolution: "@whatwg-node/fetch@npm:0.8.8"
   dependencies:
@@ -7149,16 +7053,6 @@ __metadata:
     urlpattern-polyfill: ^8.0.0
     web-streams-polyfill: ^3.2.1
   checksum: 37d882bf85764aec7541cda1008099ab4d695971608946ec9b9e40326eedfd4c49507fbcc8765ebe3e9241f4dc9d1e970e0b3501a814d721c40c721d313c5d50
-  languageName: node
-  linkType: hard
-
-"@whatwg-node/fetch@npm:0.9.21, @whatwg-node/fetch@npm:^0.9.18, @whatwg-node/fetch@npm:^0.9.21":
-  version: 0.9.21
-  resolution: "@whatwg-node/fetch@npm:0.9.21"
-  dependencies:
-    "@whatwg-node/node-fetch": ^0.5.23
-    urlpattern-polyfill: ^10.0.0
-  checksum: c0727e32673fa0596aff9786995b308fc92c33290807c72333af2a5c7a7e38ca6e236ec641bb4caded25e30127bee4b9df2e15d47c064970c2f7df58b084ca8d
   languageName: node
   linkType: hard
 
@@ -7578,7 +7472,7 @@ __metadata:
     "@redwoodjs/api": 8.1.1
     "@redwoodjs/auth-dbauth-api": 8.1.1
     "@redwoodjs/graphql-server": 8.1.1
-    "@spoonjoy/redwoodjs-dbauth-oauth-api": ^1.3.0
+    "@spoonjoy/redwoodjs-dbauth-oauth-api": "file:.yalc/@spoonjoy/redwoodjs-dbauth-oauth-api"
   languageName: unknown
   linkType: soft
 
@@ -9471,24 +9365,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js-pure@npm:^3.25.1, core-js-pure@npm:^3.30.2":
+"core-js-pure@npm:^3.30.2":
   version: 3.31.1
   resolution: "core-js-pure@npm:3.31.1"
   checksum: 58e126c2fb3d2758f29f947edc9a561b367189d158f98bfdf6169a7fafbbafc61ae4a9c69df6ed48a7b3985727c60eead82b2072f66f5ca0d911b9b4c74cbb8c
-  languageName: node
-  linkType: hard
-
-"core-js@npm:3.30.1":
-  version: 3.30.1
-  resolution: "core-js@npm:3.30.1"
-  checksum: 7b3b8ba85aca888d9780ad93a02f3d3a8c0c93b51cb48ef98a5e0909cbfd2f694d17ebf5084e043bd762d2953eff52b869cd01d3b0a5acd2b1edd9d687ccb684
-  languageName: node
-  linkType: hard
-
-"core-js@npm:3.30.2":
-  version: 3.30.2
-  resolution: "core-js@npm:3.30.2"
-  checksum: 864d7dc908d4ece507d27e6c6d2830300dcb775d88cfefeec31e34ab95be5016bb23abb29c8b1c4a930bada01318af009276199d75dcab1a230c3cebdf8d3a70
   languageName: node
   linkType: hard
 
@@ -9687,13 +9567,6 @@ __metadata:
     randombytes: ^2.0.0
     randomfill: ^1.0.3
   checksum: 0c20198886576050a6aa5ba6ae42f2b82778bfba1753d80c5e7a090836890dc372bdc780986b2568b4fb8ed2a91c958e61db1f0b6b1cc96af4bd03ffc298ba92
-  languageName: node
-  linkType: hard
-
-"crypto-js@npm:4.1.1":
-  version: 4.1.1
-  resolution: "crypto-js@npm:4.1.1"
-  checksum: 50cc66a35f2738171d9a6d80c85ba7d00cb6440b756db035ba9ccd03032c0a803029a62969ecd4c844106c980af87687c64b204dd967989379c4f354fb482d37
   languageName: node
   linkType: hard
 
@@ -14481,18 +14354,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonwebtoken@npm:9.0.0":
-  version: 9.0.0
-  resolution: "jsonwebtoken@npm:9.0.0"
-  dependencies:
-    jws: ^3.2.2
-    lodash: ^4.17.21
-    ms: ^2.1.1
-    semver: ^7.3.8
-  checksum: 60c30d90d8a69b8e7148306e0c299ac120dbde9c032add48d26df928fe349e952cf4b09f12d7942257681a936e3374e4d49280ab20f8a4578688c7f08d87f9bc
-  languageName: node
-  linkType: hard
-
 "jsonwebtoken@npm:9.0.2, jsonwebtoken@npm:^9.0.0":
   version: 9.0.2
   resolution: "jsonwebtoken@npm:9.0.2"
@@ -16423,48 +16284,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pino-abstract-transport@npm:v1.0.0":
-  version: 1.0.0
-  resolution: "pino-abstract-transport@npm:1.0.0"
-  dependencies:
-    readable-stream: ^4.0.0
-    split2: ^4.0.0
-  checksum: c7a68e4f77f47565d39fdc33ba23f388ad2594b26a12ccce3060fef833cd7803db73a0c6e4fa7129616f22eb762119ed6107450e0f8ca1e3745d4993017725f7
-  languageName: node
-  linkType: hard
-
-"pino-std-serializers@npm:^6.0.0":
-  version: 6.2.2
-  resolution: "pino-std-serializers@npm:6.2.2"
-  checksum: 8f1c7f0f0d8f91e6c6b5b2a6bfb48f06441abeb85f1c2288319f736f9c6d814fbeebe928d2314efc2ba6018fa7db9357a105eca9fc99fc1f28945a8a8b28d3d5
-  languageName: node
-  linkType: hard
-
 "pino-std-serializers@npm:^7.0.0":
   version: 7.0.0
   resolution: "pino-std-serializers@npm:7.0.0"
   checksum: 73e694d542e8de94445a03a98396cf383306de41fd75ecc07085d57ed7a57896198508a0dec6eefad8d701044af21eb27253ccc352586a03cf0d4a0bd25b4133
-  languageName: node
-  linkType: hard
-
-"pino@npm:8.11.0":
-  version: 8.11.0
-  resolution: "pino@npm:8.11.0"
-  dependencies:
-    atomic-sleep: ^1.0.0
-    fast-redact: ^3.1.1
-    on-exit-leak-free: ^2.1.0
-    pino-abstract-transport: v1.0.0
-    pino-std-serializers: ^6.0.0
-    process-warning: ^2.0.0
-    quick-format-unescaped: ^4.0.3
-    real-require: ^0.2.0
-    safe-stable-stringify: ^2.3.1
-    sonic-boom: ^3.1.0
-    thread-stream: ^2.0.0
-  bin:
-    pino: bin.js
-  checksum: 456694c935008b0ad3df75991a3b494c0325806cb5378ef672828554e67e5bcedc7a8fbfc3e513d098e585e1c6f7489415eaa9d7b9a95453278bfe2ce5f68bc6
   languageName: node
   linkType: hard
 
@@ -16819,13 +16642,6 @@ __metadata:
   version: 2.0.1
   resolution: "process-nextick-args@npm:2.0.1"
   checksum: bec089239487833d46b59d80327a1605e1c5287eaad770a291add7f45fda1bb5e28b38e0e061add0a1d0ee0984788ce74fa394d345eed1c420cacf392c554367
-  languageName: node
-  linkType: hard
-
-"process-warning@npm:^2.0.0":
-  version: 2.3.0
-  resolution: "process-warning@npm:2.3.0"
-  checksum: c9ce917ccf5418d229910fa4f431c6ad16388793e000afb47deeaf8434fb697fc0ad0ca4e1c2dc7adb25cab9d6d759208a0765849fe93e35ecf0444ae2c88e08
   languageName: node
   linkType: hard
 
@@ -18435,15 +18251,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sonic-boom@npm:^3.1.0":
-  version: 3.7.0
-  resolution: "sonic-boom@npm:3.7.0"
-  dependencies:
-    atomic-sleep: ^1.0.0
-  checksum: 57a3d560efb77f4576db111168ee2649c99e7869fda6ce0ec2a4e5458832d290ba58d74b073ddb5827d9a30f96d23cff79157993d919e1a6d5f28d8b6391c7f0
-  languageName: node
-  linkType: hard
-
 "sonic-boom@npm:^4.0.1":
   version: 4.1.0
   resolution: "sonic-boom@npm:4.1.0"
@@ -19187,15 +18994,6 @@ __metadata:
   dependencies:
     any-promise: ^1.0.0
   checksum: f375aeb2b05c100a456a30bc3ed07ef03a39cbdefe02e0403fb714b8c7e57eeaad1a2f5c4ecfb9ce554ce3db9c2b024eba144843cd9e344566d9fcee73b04767
-  languageName: node
-  linkType: hard
-
-"thread-stream@npm:^2.0.0":
-  version: 2.3.0
-  resolution: "thread-stream@npm:2.3.0"
-  dependencies:
-    real-require: ^0.2.0
-  checksum: 06f60892adab3f3b5b8930857a0049d29b89cbb95581b079274c87ee0aea718d12d8d56e8ad3aafa5ded3321aaf51a4e1b1ce70340d650fbfa1cdd6d0d399bc2
   languageName: node
   linkType: hard
 
@@ -19992,7 +19790,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:9.0.0, uuid@npm:^9.0.0":
+"uuid@npm:^9.0.0":
   version: 9.0.0
   resolution: "uuid@npm:9.0.0"
   bin:
@@ -20233,7 +20031,7 @@ __metadata:
     "@redwoodjs/router": 8.1.1
     "@redwoodjs/vite": 8.1.1
     "@redwoodjs/web": 8.1.1
-    "@spoonjoy/redwoodjs-dbauth-oauth-web": ^1.2.3
+    "@spoonjoy/redwoodjs-dbauth-oauth-web": "file:.yalc/@spoonjoy/redwoodjs-dbauth-oauth-web"
     autoprefixer: ^10.4.14
     humanize-string: 2.1.0
     postcss: ^8.4.25

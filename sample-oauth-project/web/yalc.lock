@@ -1,0 +1,10 @@
+{
+  "version": "v1",
+  "packages": {
+    "@spoonjoy/redwoodjs-dbauth-oauth-web": {
+      "signature": "05b8ddabed54658e76a393a9cb3a28e0",
+      "file": true,
+      "replaced": "^1.2.3"
+    }
+  }
+}

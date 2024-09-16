@@ -696,7 +696,6 @@ export class OAuthHandler<
 
       body: new URLSearchParams(values).toString(),
     }).then((res) => {
-      console.log('getIdTokenFromProvider response: ', res)
       return res.json()
     })
 
@@ -761,20 +760,6 @@ export class OAuthHandler<
   /** START section on request response helpers */
 
   /**
-   * Use this as the API handler response when you don't want to throw an error.
-   * @param body the body of the response.
-   * @param headers any headers to add to the response.
-   * @param options any options to add to the response (e.g. statusCode, which defaults to 200).
-   */
-  _ok(body: string, headers = {}, options = { statusCode: 200 }) {
-    return {
-      statusCode: options.statusCode,
-      body: typeof body === 'string' ? body : JSON.stringify(body),
-      headers: { 'Content-Type': 'application/json', ...headers },
-    }
-  }
-
-  /**
    * Use this to create the parameters to pass to _ok when you want to redirect back to the app.
    * This is a valid response for a given method, but not for the API endpoint.
    * @param body the body of the response.
@@ -804,12 +789,11 @@ export class OAuthHandler<
     // If url already has query parameters, append with '&' else append with '?'
     url.search += (url.search ? '&' : '?') + queryString
 
+    headers.append('location', url.toString())
+
     return [
       body,
-      {
-        location: url.toString(),
-        ...headers,
-      },
+      headers,
       {
         statusCode: 303,
       },
@@ -878,6 +862,9 @@ export class OAuthHandler<
         csrfToken
       )
     )
+
+    console.log('Built session response - session data:', sessionData)
+    console.log('Built session response - headers:', headers)
 
     return this._redirectToSite(sessionData, headers)
   }
@@ -1233,10 +1220,9 @@ export class OAuthHandler<
    * the routing of the request to the correct method as well as the response.
    */
   async invoke() {
-    const request = normalizeRequest(this.event)
-    console.log('request', request)
-
     const corsHeaders = {}
+
+    await this.init()
 
     try {
       const method = this._getOAuthMethod()
