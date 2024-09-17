@@ -9,4 +9,6 @@ api/dist/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+.yalc/*
+.yalc/**/*
 *yalc*
