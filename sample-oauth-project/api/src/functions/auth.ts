@@ -156,14 +156,21 @@ export const handler = async (
     // Specifies attributes on the cookie that dbAuth sets in order to remember
     // who is logged in. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies
     cookie: {
-      HttpOnly: true,
-      Path: '/',
-      SameSite: 'Strict',
-      Secure: process.env.NODE_ENV !== 'development',
+      attributes: {
+        Path: '/',
+        HttpOnly: true,
+        // WHen using sameSite: 'None', you must also set Secure: true
+        Secure: true,
+        // Secure: process.env.NODE_ENV !== 'development',
+        // When using Apple auth, because the redirect is via form_post, if the cookie is not set to SameSite: 'None',
+        // when attempting to, for example, link an Apple account, the cookie won't come along for the ride,
+        // and the server won't know that the user is logged in.
+        SameSite: 'None',
 
-      // If you need to allow other domains (besides the api side) access to
-      // the dbAuth session cookie:
-      // Domain: 'example.com',
+        // If you need to allow other domains (besides the api side) access to
+        // the dbAuth session cookie:
+        // Domain: 'example.com',
+      }
     },
 
     forgotPassword: forgotPasswordOptions,
@@ -189,8 +196,7 @@ export const handler = async (
     case '/auth':
       return await authHandler.invoke()
     case '/auth/oauth':
-      const oAuthHandlerRes = await oAuthHandler.invoke()
-      return oAuthHandlerRes
+      return await oAuthHandler.invoke()
     default:
       throw new Error('Unknown auth path')
   }
