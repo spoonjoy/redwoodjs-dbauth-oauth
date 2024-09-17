@@ -191,7 +191,8 @@ export const handler = async (
     case '/auth':
       return await authHandler.invoke()
     case '/auth/oauth':
-      return await oAuthHandler.invoke()
+      const oAuthHandlerRes = await oAuthHandler.invoke()
+      return oAuthHandlerRes
     default:
       throw new Error('Unknown auth path')
   }

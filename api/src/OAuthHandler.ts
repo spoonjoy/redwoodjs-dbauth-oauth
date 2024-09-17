@@ -25,6 +25,7 @@ import type {
   IGitHubUserInfo,
   IConnectedAccountRecord,
 } from './types'
+import { parseEventBodyAsString } from './transforms'
 
 export interface OAuthHandlerOptions<TUser = Record<string | number, any>> {
   /**
@@ -399,7 +400,7 @@ export class OAuthHandler<
   ) {
     this.options = options
 
-    this.event = event
+    this.event = parseEventBodyAsString(event)
     this.httpMethod = isFetchApiRequest(event) ? event.method : event.httpMethod
     this.context = context
     this.dbAuthHandlerInstance = dbAuthHandlerInstance
@@ -1258,7 +1259,10 @@ export class OAuthHandler<
         const [body, headers, options] = this._redirectToSiteWithError(
           e.message || e
         )
-        return this.dbAuthHandlerInstance._ok(body, headers, options)
+        return this.createResponse(
+          this.dbAuthHandlerInstance._ok(body, headers, options),
+          corsHeaders
+        )
       } else {
         return this.createResponse(
           this.dbAuthHandlerInstance._badRequest(e.message || e),
