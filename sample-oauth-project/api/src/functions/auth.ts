@@ -185,8 +185,6 @@ export const handler = async (
     },
   })
 
-  console.log('event.path', event.path)
-
   switch (event.path) {
     case '/auth':
       return await authHandler.invoke()

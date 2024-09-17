@@ -863,10 +863,6 @@ export class OAuthHandler<
         csrfToken
       )
     )
-
-    console.log('Built session response - session data:', sessionData)
-    console.log('Built session response - headers:', headers)
-
     return this._redirectToSite(sessionData, headers)
   }
 
