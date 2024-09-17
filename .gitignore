@@ -11,4 +11,5 @@ api/dist/
 !.yarn/versions
 .yalc/*
 .yalc/**/*
-*yalc*
+**/yalc*
+**/yalc/**/*
