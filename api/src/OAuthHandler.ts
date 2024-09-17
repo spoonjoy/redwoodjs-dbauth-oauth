@@ -5,7 +5,7 @@ import {
 import {
   CorsHeaders,
   isFetchApiRequest,
-  normalizeRequest,
+  // normalizeRequest, // Instead using a modified version that does additional body parsing
   PartialRequest,
 } from '@redwoodjs/api'
 import type { APIGatewayProxyEvent, Context as LambdaContext } from 'aws-lambda'
@@ -25,7 +25,7 @@ import type {
   IGitHubUserInfo,
   IConnectedAccountRecord,
 } from './types'
-import { parseEventBodyAsString } from './transforms'
+import { normalizeRequest } from './transforms'
 
 export interface OAuthHandlerOptions<TUser = Record<string | number, any>> {
   /**
@@ -400,7 +400,7 @@ export class OAuthHandler<
   ) {
     this.options = options
 
-    this.event = parseEventBodyAsString(event)
+    this.event = event
     this.httpMethod = isFetchApiRequest(event) ? event.method : event.httpMethod
     this.context = context
     this.dbAuthHandlerInstance = dbAuthHandlerInstance
