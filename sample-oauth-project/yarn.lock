@@ -5710,9 +5710,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@spoonjoy/redwoodjs-dbauth-oauth-api@file:.yalc/@spoonjoy/redwoodjs-dbauth-oauth-api::locator=api%40workspace%3Aapi":
-  version: 1.3.0
-  resolution: "@spoonjoy/redwoodjs-dbauth-oauth-api@file:.yalc/@spoonjoy/redwoodjs-dbauth-oauth-api#.yalc/@spoonjoy/redwoodjs-dbauth-oauth-api::hash=2de430&locator=api%40workspace%3Aapi"
+"@spoonjoy/redwoodjs-dbauth-oauth-api@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@spoonjoy/redwoodjs-dbauth-oauth-api@npm:2.0.0"
   dependencies:
     "@prisma/client": 5.19.1
     "@redwoodjs/api": 8.1.1
@@ -5722,19 +5722,19 @@ __metadata:
     jsonwebtoken: ^9.0.0
     md5: ^2.3.0
     uuid: ^9.0.0
-  checksum: 707477aeb8c4340a883b92c68a02718ceb7be3abb57aa2621f53784db2d8b8996d8c7c95dd3af0fc87656477aec0a11bc5faf6496df763072da8af870399425c
+  checksum: e635beea768f0a26307709a9fa44c9fbd5be49b6666a3e30d4ee5b51923bc36faccd5bf9ea087ae60957d7e7f340be5c0ba21049cce8f3698a6982a5eff7a555
   languageName: node
   linkType: hard
 
-"@spoonjoy/redwoodjs-dbauth-oauth-web@file:.yalc/@spoonjoy/redwoodjs-dbauth-oauth-web::locator=web%40workspace%3Aweb":
-  version: 1.2.3
-  resolution: "@spoonjoy/redwoodjs-dbauth-oauth-web@file:.yalc/@spoonjoy/redwoodjs-dbauth-oauth-web#.yalc/@spoonjoy/redwoodjs-dbauth-oauth-web::hash=cc9019&locator=web%40workspace%3Aweb"
+"@spoonjoy/redwoodjs-dbauth-oauth-web@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@spoonjoy/redwoodjs-dbauth-oauth-web@npm:2.0.0"
   peerDependencies:
     "@redwoodjs/core": 8.1.1
     "@redwoodjs/router": 8.1.1
     react: 18.2.0
     react-dom: 18.2.0
-  checksum: ed3d9586870435b5f065baa2fa7f71161c360055cd43971f175207c2c5561ec62fc05000a3c8949a3404f193ccb30652862b813f802f1f90dbf1f5fc1c15d185
+  checksum: 16fa6df66811edc35e6ad6602ed8f20e0779847ea554a1aef3888550f77abafa2235d9e17eee9a32f20119960e92bb99c7b9a8c757b947158eadcb036c6c4115
   languageName: node
   linkType: hard
 
@@ -7472,7 +7472,7 @@ __metadata:
     "@redwoodjs/api": 8.1.1
     "@redwoodjs/auth-dbauth-api": 8.1.1
     "@redwoodjs/graphql-server": 8.1.1
-    "@spoonjoy/redwoodjs-dbauth-oauth-api": "file:.yalc/@spoonjoy/redwoodjs-dbauth-oauth-api"
+    "@spoonjoy/redwoodjs-dbauth-oauth-api": 2.0.0
   languageName: unknown
   linkType: soft
 
@@ -20031,7 +20031,7 @@ __metadata:
     "@redwoodjs/router": 8.1.1
     "@redwoodjs/vite": 8.1.1
     "@redwoodjs/web": 8.1.1
-    "@spoonjoy/redwoodjs-dbauth-oauth-web": "file:.yalc/@spoonjoy/redwoodjs-dbauth-oauth-web"
+    "@spoonjoy/redwoodjs-dbauth-oauth-web": 2.0.0
     autoprefixer: ^10.4.14
     humanize-string: 2.1.0
     postcss: ^8.4.25

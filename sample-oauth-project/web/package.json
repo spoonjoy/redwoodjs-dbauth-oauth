@@ -15,7 +15,7 @@
     "@redwoodjs/forms": "8.1.1",
     "@redwoodjs/router": "8.1.1",
     "@redwoodjs/web": "8.1.1",
-    "@spoonjoy/redwoodjs-dbauth-oauth-web": "file:.yalc/@spoonjoy/redwoodjs-dbauth-oauth-web",
+    "@spoonjoy/redwoodjs-dbauth-oauth-web": "2.0.0",
     "humanize-string": "2.1.0",
     "prop-types": "15.8.1",
     "react": "18.3.0-canary-035a41c4e-20230704",
