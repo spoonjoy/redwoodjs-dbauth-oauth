@@ -16,20 +16,22 @@ Sign in with Apple, GitHub and Google for RedwoodJS apps that use dbAuth.
 
 [Web package](web/README.md) · [API package](api/README.md) · [Sample project](sample-oauth-project) · [Spoonjoy](https://spoonjoy.app)
 
-**Start:** `yarn workspace web add @spoonjoy/redwoodjs-dbauth-oauth-web` and `yarn workspace api add @spoonjoy/redwoodjs-dbauth-oauth-api`, then follow [Setup Instructions](#setup-instructions).
-
 Spoonjoy built this plugin for its sign-in when the app ran on RedwoodJS. Spoonjoy has since moved to React Router, so the plugin is no longer in production there; the last release is 2.0.1 (September 2024).
 
+**Start:** add both sides, then follow [Setup Instructions](#setup-instructions).
+
+```sh
+yarn workspace web add @spoonjoy/redwoodjs-dbauth-oauth-web
+yarn workspace api add @spoonjoy/redwoodjs-dbauth-oauth-api
+```
+
 ## Overview
-This library provides an easy and effective way to integrate OAuth into your [RedwoodJS](https://redwoodjs.com/) applications, offering a seamless experience for both developers and end users. Currently, it supports OAuth providers including Apple, GitHub, and Google, with a flexible architecture that allows for the expansion to more providers.
+It adds OAuth sign-in with Apple, GitHub and Google to [RedwoodJS](https://redwoodjs.com/) apps that use dbAuth, and new providers can be added. It also ships ready-made sign-in, sign-up, link and unlink buttons:
 
-This library additionally provides buttons to make setup even more effortless:
-
-![button screenshots](https://github.com/spoonjoy/redwoodjs-dbauth-oauth/assets/16390116/ad13882e-3153-49df-bb06-5ffd30e04389)
-
+<p align="center"><img src="https://github.com/spoonjoy/redwoodjs-dbauth-oauth/assets/16390116/ad13882e-3153-49df-bb06-5ffd30e04389" alt="The plugin's sign-in, sign-up, link and unlink buttons for Apple, GitHub and Google" width="420"></p>
 
 ## Project Structure
-The project follows the dbAuth integration pattern as of Redwood version 4 and aligns with the Decoupled Auth strategy. It is structured as a Yarn monorepo with two main packages: `web` and `api`.
+The project follows the dbAuth integration pattern and the Decoupled Auth strategy, and is built against RedwoodJS 8.1. It is structured as a Yarn monorepo with two main packages: `web` and `api`.
 
 - The `web` package handles the OAuth flow from the user's perspective.
 - The `api` package manages the communication with the OAuth provider and your database.
