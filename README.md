@@ -1,10 +1,24 @@
+<!-- spoonjoy:brand:start -->
+<p align="center">
+  <a href="https://github.com/spoonjoy"><picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/spoonjoy/.github/main/brand/headers/redwoodjs-dbauth-oauth-dark.webp">
+    <img src="https://raw.githubusercontent.com/spoonjoy/.github/main/brand/headers/redwoodjs-dbauth-oauth-light.webp" alt="An old brass key beside a wooden spoon on a linen tablecloth" width="100%">
+  </picture></a>
+</p>
+<!-- spoonjoy:brand:end -->
+
 # RedwoodJS dbAuth OAuth Plugin
-A RedwoodJS plugin that adds OAuth capabilities to projects using dbAuth.
+
+Sign in with Apple, GitHub and Google for RedwoodJS apps that use dbAuth.
 
 [![API side NPM version](https://img.shields.io/npm/v/%40spoonjoy%2Fredwoodjs-dbauth-oauth-api?logo=redwoodjs&label=npm%20-%20api%20side)](https://www.npmjs.com/package/@spoonjoy/redwoodjs-dbauth-oauth-api)
 [![Web side NPM version](https://img.shields.io/npm/v/%40spoonjoy%2Fredwoodjs-dbauth-oauth-web?logo=redwoodjs&label=npm%20-%20web%20side)](https://www.npmjs.com/package/@spoonjoy/redwoodjs-dbauth-oauth-web)
 
-### This is currently in production at [spoonjoy.app](https://spoonjoy.app), check it out!
+[Web package](web/README.md) · [API package](api/README.md) · [Sample project](sample-oauth-project) · [Spoonjoy](https://spoonjoy.app)
+
+**Start:** `yarn workspace web add @spoonjoy/redwoodjs-dbauth-oauth-web` and `yarn workspace api add @spoonjoy/redwoodjs-dbauth-oauth-api`, then follow [Setup Instructions](#setup-instructions).
+
+Spoonjoy built this plugin for its sign-in when the app ran on RedwoodJS. Spoonjoy has since moved to React Router, so the plugin is no longer in production there; the last release is 2.0.1 (September 2024).
 
 ## Overview
 This library provides an easy and effective way to integrate OAuth into your [RedwoodJS](https://redwoodjs.com/) applications, offering a seamless experience for both developers and end users. Currently, it supports OAuth providers including Apple, GitHub, and Google, with a flexible architecture that allows for the expansion to more providers.
