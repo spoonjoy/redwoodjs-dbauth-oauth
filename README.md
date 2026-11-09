@@ -11,8 +11,8 @@
 
 Sign in with Apple, GitHub and Google for RedwoodJS apps that use dbAuth.
 
-[![API side NPM version](https://img.shields.io/npm/v/%40spoonjoy%2Fredwoodjs-dbauth-oauth-api?logo=redwoodjs&label=npm%20-%20api%20side)](https://www.npmjs.com/package/@spoonjoy/redwoodjs-dbauth-oauth-api)
-[![Web side NPM version](https://img.shields.io/npm/v/%40spoonjoy%2Fredwoodjs-dbauth-oauth-web?logo=redwoodjs&label=npm%20-%20web%20side)](https://www.npmjs.com/package/@spoonjoy/redwoodjs-dbauth-oauth-web)
+[![API side NPM version](https://img.shields.io/npm/v/%40spoonjoy%2Fredwoodjs-dbauth-oauth-api?logo=redwoodjs&label=npm%20-%20api%20side&color=9b6834&labelColor=28231d)](https://www.npmjs.com/package/@spoonjoy/redwoodjs-dbauth-oauth-api)
+[![Web side NPM version](https://img.shields.io/npm/v/%40spoonjoy%2Fredwoodjs-dbauth-oauth-web?logo=redwoodjs&label=npm%20-%20web%20side&color=9b6834&labelColor=28231d)](https://www.npmjs.com/package/@spoonjoy/redwoodjs-dbauth-oauth-web)
 
 [Web package](web/README.md) · [API package](api/README.md) · [Sample project](sample-oauth-project) · [Spoonjoy](https://spoonjoy.app)
 
